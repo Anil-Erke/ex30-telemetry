@@ -13,22 +13,29 @@ verilerini gösterir.
 > Bkz. [Sorumluluk reddi](#sorumluluk-reddi).
 
 <p>
-  <img src="play-assets/screenshot-1.png" width="260" alt="Canlı irtifa grafiği, dikey">
-  <img src="play-assets/screenshot-land-1.png" width="420" alt="Canlı irtifa grafiği, yatay">
+  <img src="screenshots/tr-live.png" width="270" alt="Canlı ekran, açık tema">
+  <img src="screenshots/tr-live-dark.png" width="270" alt="Canlı ekran, koyu tema">
+</p>
+<p>
+  <img src="screenshots/tr-trips.png" width="270" alt="Yolculuk geçmişi">
+  <img src="screenshots/tr-records.png" width="270" alt="Rekorlar">
+  <img src="screenshots/tr-vehicle-data.png" width="270" alt="Araç verileri / tanılama">
 </p>
 
-<sub>Ekran görüntüleri erken bir sürümden (irtifa görünümü), AAOS emülatöründe
-alındı. Güncel sürümün canlı ekranında daha fazla panel var.</sub>
+<sub>Canlı ekran (açık ve koyu tema), yolculuk geçmişi, rekorlar ve araç verileri.
+AAOS emülatöründe, debug derlemesinin sentetik demo verisiyle alındı.</sub>
 
 ## Özellikler
 
 **Canlı ekran** (navigasyon yüzeyine çizilir, sürüş sırasında ekranda kalır)
 
-- Son **10 / 20 / 50 km**'lik kayan pencerede irtifa ve hız grafikleri
-- Aynı pencere ve yolculuğun tamamı için tüketim (kWh/100 km)
-- Harcanan ve geri kazanılan (rejen) enerji, tırmanışa giden enerji, dış
-  sıcaklık, mesafe, süre, ortalama / azami hız
-- Aracın gece moduna uyan otomatik açık / koyu tema
+- Son **10 / 20 / 50 km**'lik kayan pencerede tüketim (kWh/100 km), yanında
+  yolculuğun tamamının ortalaması
+- Aynı pencerede irtifa grafiği: en yüksek / en alçak nokta, toplam tırmanış /
+  iniş, tırmanışa giden ve geri kazanılan (rejen) enerji
+- Azami değerli hız grafiği; pencere ve yolculuk ortalama hızı yan yana
+- Yeni bir performans rekoru kırıldığında şerit
+- Aracın gece moduna uyan (ya da elle sabitlenebilen) açık / koyu tema
 
 **Otomatik yolculuk kaydı**
 
@@ -144,7 +151,8 @@ automotive/src/main/java/.../
   loc/      konum + ön plan servisi
   debug/    yalnızca debug kancaları ve demo verisi
 drive-sync/ isteğe bağlı Google Apps Script ucu (Kod.gs)
-play-assets/ simge, tanıtım görseli, ekran görüntüleri
+play-assets/ simge ve tanıtım görseli
+screenshots/ README görselleri (en-*, tr-*)
 ```
 
 Kod yorumları çoğunlukla Türkçedir. Bazı yorumlar bu depoda bulunmayan dahili

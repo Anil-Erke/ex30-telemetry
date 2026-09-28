@@ -12,22 +12,29 @@ the stock UI does not expose.
 > here only to describe compatibility. See [Disclaimer](#disclaimer).
 
 <p>
-  <img src="play-assets/screenshot-1.png" width="260" alt="Live altitude chart, portrait">
-  <img src="play-assets/screenshot-land-1.png" width="420" alt="Live altitude chart, landscape">
+  <img src="screenshots/en-live.png" width="270" alt="Live screen, light theme">
+  <img src="screenshots/en-live-dark.png" width="270" alt="Live screen, dark theme">
+</p>
+<p>
+  <img src="screenshots/en-trips.png" width="270" alt="Trip history">
+  <img src="screenshots/en-records.png" width="270" alt="Records">
+  <img src="screenshots/en-vehicle-data.png" width="270" alt="Vehicle data / diagnostics">
 </p>
 
-<sub>Screenshots are from an early build (altitude view) taken on the AAOS emulator.
-The current build shows more panels on the live screen.</sub>
+<sub>Live screen (light and dark theme), trip history, records and vehicle data.
+Taken on the AAOS emulator with the debug build's synthetic demo data.</sub>
 
 ## Features
 
 **Live screen** (drawn on the navigation surface, stays visible while driving)
 
-- Altitude and speed charts over a sliding window of the last **10 / 20 / 50 km**
-- Consumption (kWh/100 km) for the same window and for the whole trip
-- Energy used vs. regenerated, energy spent on climbs, outside temperature,
-  distance, duration, average / max speed
-- Automatic light / dark theme that follows the car's night mode
+- Consumption (kWh/100 km) over a sliding window of the last **10 / 20 / 50 km**,
+  next to the whole-trip average
+- Altitude chart for the same window with highest / lowest point, total
+  climb / descent, energy spent climbing and energy regenerated
+- Speed chart with maximum, and average speed for the window vs. the whole trip
+- A banner when a new performance record is set
+- Light / dark theme that follows the car's night mode (or can be fixed by hand)
 
 **Automatic trip recording**
 
@@ -144,7 +151,8 @@ automotive/src/main/java/.../
   loc/      location + foreground service
   debug/    debug-only hooks and demo data
 drive-sync/ optional Google Apps Script endpoint (Kod.gs)
-play-assets/ icon, feature graphic, screenshots
+play-assets/ icon and feature graphic
+screenshots/ README images (en-*, tr-*)
 ```
 
 Code comments are mostly in Turkish. Some comments refer to internal
