@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Android Automotive OS (arac icinde calisan) uygulamasi -->
+    <uses-feature
+        android:name="android.hardware.type.automotive"
+        android:required="true" />
+    <!-- Template host (Car App Library) gerektirir -->
+    <uses-feature
+        android:name="android.software.car.templates_host"
+        android:required="true" />
+
+    <!--
+      Arac verisi izinleri. Burada YALNIZCA gercekten okunan property'ler var
+      (prompt.md §6.12) — fazla izin gizlilik politikasiyla ve veri guvenligi
+      formuyla celisiyor.
+
+        CAR_INFO                 -> INFO_EV_BATTERY_CAPACITY (nominal kWh)
+        CAR_ENERGY               -> EV_BATTERY_LEVEL, RANGE_REMAINING,
+                                    EV_BATTERY_INSTANTANEOUS_CHARGE_RATE, CarInfo enerji profili
+        CAR_SPEED                -> PERF_VEHICLE_SPEED (+ _DISPLAY)
+        CAR_POWERTRAIN           -> GEAR_SELECTION, IGNITION_STATE, PARKING_BRAKE_ON
+        CAR_EXTERIOR_ENVIRONMENT -> ENV_OUTSIDE_TEMPERATURE
+    -->
+    <uses-permission android:name="android.car.permission.CAR_INFO" />
+    <uses-permission android:name="android.car.permission.CAR_ENERGY" />
+    <uses-permission android:name="android.car.permission.CAR_SPEED" />
+    <uses-permission android:name="android.car.permission.CAR_POWERTRAIN" />
+    <uses-permission android:name="android.car.permission.CAR_EXTERIOR_ENVIRONMENT" />
+
+    <!--
+      ANDROID 15 (arac yazilimi 2.1.2) ILE UCUNCU PARTIYE ACILAN IZINLER.
+
+      Hepsi "Dangerous" — yani CAR_SPEED / CAR_ENERGY gibi CALISMA ANINDA
+      istenip verilebiliyor. Android 15 oncesinde ayni veriler yalnizca
+      Signature|Privileged ikizleriyle (CAR_MILEAGE, CAR_TIRES, READ_CAR_STEERING)
+      aliniyordu ve Play'den kurulan bir uygulamaya tamamen kapaliydi.
+
+        CAR_MILEAGE_3P       -> PERF_ODOMETER, INSTANTANEOUS_EV_EFFICIENCY
+        CAR_TIRES_3P         -> TIRE_PRESSURE (dort tekerlek ayri areaId)
+        READ_CAR_STEERING_3P -> PERF_STEERING_ANGLE
+        CAR_DRIVING_STATE_3P -> VEHICLE_DRIVING_AUTOMATION_CURRENT_LEVEL
+        CAR_ENERGY_PORTS     -> EV_CHARGE_PORT_CONNECTED / _OPEN  (Normal izin)
+
+      UYARI: iznin var olmasi aracin o property'yi YAYINLADIGI anlamina gelmez.
+      Hangisinin gercekten geldigini CarPropertyProbe olcuyor; olcum gelmeden
+      bu izinlere dayanan bir ozellik yazilmayacak (§10.5/3).
+
+      Bunlar OPSIYONEL: reddedilseler de uygulama calismaya devam eder
+      (bkz. Permissions.REQUIRED / Permissions.OPTIONAL ayrimi).
+    -->
+    <uses-permission android:name="android.car.permission.CAR_MILEAGE_3P" />
+    <uses-permission android:name="android.car.permission.CAR_TIRES_3P" />
+    <uses-permission android:name="android.car.permission.READ_CAR_STEERING_3P" />
+    <uses-permission android:name="android.car.permission.CAR_DRIVING_STATE_3P" />
+    <uses-permission android:name="android.car.permission.CAR_ENERGY_PORTS" />
+
+    <!--
+      NOT: ic sicaklik (HVAC_TEMPERATURE_CURRENT) BILEREK OKUNMUYOR.
+
+      KESINLESTI (2026-09-09): AOSP referansi acikca soyluyor —
+        "Required Permission: Signature|Privileged permission
+         Car.PERMISSION_CONTROL_CAR_CLIMATE to read property."
+
+      Signature|Privileged demek: izin ancak platform anahtariyla imzalanmis ya
+      da /system/priv-app altindaki uygulamalara verilir. Play'den kurulan bir
+      uygulama bunu HICBIR KOSULDA alamaz — Google incelemesinden gecse de,
+      yalnizca dahili teste birakilsa da. 2026-08-31'de gozlenen
+      "granted=false ile kuruluyor" davranisinin sebebi de buydu.
+
+      Volvo REST API'si de secenek degil: Connected Vehicle API v2 ve Energy API
+      v2 OpenAPI spec'lerinin ikisinde de "temperature" gecmiyor (2026-09-09'da
+      spec indirilip tarandi). Climate endpoint'i yalnizca climatization
+      start/stop KOMUTU; okuma yok.
+
+      Yani kabin sicakligi her iki yolda da kapali. Yerine batarya sicakligi
+      (EV_BATTERY_AVERAGE_TEMPERATURE, CAR_ENERGY ile) kullaniliyor.
+    -->
+
+    <!--
+      Bu izin kendi basina bir veri icin degil: Car App Library'nin
+      `CarInfo.addEnergyLevelListener` cagrisi ICERIDE birim ayarlarini okuyor ve
+      izin yoksa dogrudan SecurityException atiyor:
+
+        SecurityException: Missed permission: android.car.permission.READ_CAR_DISPLAY_UNITS
+            at AutomotiveCarInfo.getCapacitiesThenEnergyLevel
+
+      SoC yuzdesinin tek kaynagi bu dinleyici (prompt.md §10.2), dolayisiyla izin
+      zorunlu. Birim ayarlarina gore DONUSUM YAPMIYORUZ — arac bu alanlarda
+      tutarsiz deger donduruyor (§10.4/2); ham SI degeri alinip kendimiz ceviriyoruz.
+      Emulatorde olculdu (2026-07-30).
+    -->
+    <uses-permission android:name="android.car.permission.READ_CAR_DISPLAY_UNITS" />
+
+    <!-- Mesafe ve irtifa GPS'ten hesaplaniyor: odometre (PERF_ODOMETER) ucuncu
+         partiye kapali, arac GPS'i / CarSensors EX30'da hic calismiyor (§10.3). -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!--
+      Konum tipli ON PLAN SERVISI (bkz. loc/JourneyLocationService.kt).
+
+      Neden: surucu baska bir uygulamaya gectiginde arac verisi akmaya devam
+      ediyor (58 dk boyunca en buyuk bosluk 222 ms) ama Android konum
+      guncellemelerini SEYRELTIYOR — on planda 1 Hz, arka planda dakikada ~1
+      fix. Mesafe ham hiz integraliyle koprulenebiliyor; IRTIFA koprulenemiyor,
+      cunku yukseklik yalnizca konumdan geliyor: grafikte duz cizgi, tirmanis
+      toplaminda eksik metre olarak goruluyor.
+
+      ACCESS_BACKGROUND_LOCATION BILEREK YOK: kisit izne degil surec durumuna
+      bakiyor, yani o izin sorunu cozmezdi; ustelik Play'de ayri bir "arka plan
+      konum" beyani ve incelemesi gerekirdi. Konum tipli on plan servisi
+      calisirken surec durumu FGS oluyor ve kisit hic uygulanmiyor.
+
+      DIKKAT (§7): targetSdk 35 ile Play Console'da "On plan servisi turleri"
+      beyani ZORUNLU — location turu icin gerekce + video isteniyor.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
+    <!-- Canli ekrani cizdigimiz Surface'e erisim icin zorunlu (§3.2) -->
+    <uses-permission android:name="androidx.car.app.ACCESS_SURFACE" />
+    <!-- NavigationTemplate kullanabilmek icin zorunlu -->
+    <uses-permission android:name="androidx.car.app.NAVIGATION_TEMPLATES" />
+
+    <!--
+      INTERNET — YALNIZCA "Drive'a aktar" icin (calib/DriveUploader.kt).
+
+      DIKKAT: bu izin 0.7.1'e kadar BILEREK YOKTU ve §7.6a'daki kisayol ona
+      dayaniyordu ("INTERNET yok -> veri guvenligi formu 'veri toplanmiyor' ile
+      kapanir"). O kisayol ARTIK GECERLI DEGIL. §13.9'daki "manifest'te INTERNET
+      yok" iddiasi da bu surumden itibaren kullanilamaz.
+
+      Yerine gecen gerekce §7.6a'daki EX30 Browser zinciri:
+        - gelistirici sunucusu yok; hedef KULLANICININ KENDI Google Drive'i
+        - aktarimi yalnizca kullanici baslatiyor (tek dokunuslu dugme)
+        - arka planda, otomatik ya da periyodik hicbir gonderim yok
+        - analitik, reklam, cokme raporlama SDK'si yok
+
+      Giden veride GPS izi var (trips.json). Uygulama dahili testin disina
+      cikarilacaksa veri guvenligi formu ve privacy/index.html buna gore
+      yeniden yazilmali — o dosya hâlâ "INTERNET izni yok" diyor.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/CarAppTheme">
+
+        <meta-data
+            android:name="androidx.car.app.minCarApiLevel"
+            android:value="1" />
+        <meta-data
+            android:name="com.android.automotive"
+            android:resource="@xml/automotive_app_desc" />
+
+        <!-- AAOS'ta template'leri ekrana basan launcher aktivitesi (kutuphaneden gelir).
+             Bu blok olmadan uygulama arac menusunde HIC gorunmez (§3.1). -->
+        <activity
+            android:name="androidx.car.app.activity.CarAppActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <!--
+                  NAVIGATION kategorisindeki bir AAOS uygulamasi bunu da beyan
+                  etmek ZORUNDA. Play incelemesi 6 Eylul 2026'da AAB 16'yi tam
+                  olarak bu eksik yuzunden reddetti:
+                    "Your Android Automotive OS navigation app does not declare
+                     the APP_MAPS category."
+                  Sistemi "bu uygulama kullanicinin konumunu gosterebiliyor"
+                  diye bilgilendiriyor.
+
+                  NOT: Dokumantasyon navigasyon uygulamalari icin AYRICA bir
+                  androidx.car.app.action.NAVIGATE + geo intent-filter'i
+                  gosteriyor. O BILEREK EKLENMEDI: baska uygulamalardan gelen
+                  "suraya goturt" isteklerini karsilayabildigimizi beyan etmek
+                  olurdu ve bu uygulama yol tarifi vermiyor.
+                -->
+                <category android:name="android.intent.category.APP_MAPS" />
+            </intent-filter>
+            <meta-data
+                android:name="distractionOptimized"
+                android:value="true" />
+        </activity>
+
+        <!--
+          Izin isteyen KENDI aktivitemiz.
+
+          `CarContext.requestPermissions` Android 15'te uygulamayi cokertiyor
+          (araçta olculdu 2026-09-10). Kutuphanenin kullandigi
+          androidx.car.app.CarAppPermissionActivity SAYDAM bir aktivite ve
+          saydam aktivite + yonelim istegi bilinen bir cokme sinifi. Supheli
+          yolu teshis etmek yerine devre disi biraktik.
+
+          Tema BILEREK opak (CarAppTheme): saydam yapmak ayni cokme sinifini
+          geri getirir.
+
+          distractionOptimized BILEREK yok: izin diyalogu surus sirasinda
+          acilmamali, sistem engellesin (§4.2).
+        -->
+        <activity
+            android:name=".PermissionActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/CarAppTheme" />
+
+        <!--
+          Uygulama acikken calisan konum tipli on plan servisi. Kendisi olcum
+          yapmiyor; uygulamayi arka plan konum kisitindan cikarmak icin var
+          (sinifin basindaki nota bak). POST_NOTIFICATIONS ISTENMIYOR: izin
+          yoksa bildirim gorunmuyor ama servis calismaya devam ediyor, tek bir
+          bilgi satiri icin surucuden izin istemeye degmez (§6.12).
+        -->
+        <service
+            android:name=".loc.JourneyLocationService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
+        <service
+            android:name=".JourneyCarAppService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.car.app.CarAppService" />
+                <!-- Navigasyon kategorisi: surus sirasinda ekranda kalabilme +
+                     serbest cizim yuzeyi (§4) -->
+                <category android:name="androidx.car.app.category.NAVIGATION" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

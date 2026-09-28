@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48"
+    android:tint="#FFFFFF">
+    <!-- Rekorlar: kursu -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18,34h12v4h-12z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M22,26h4v9h-4z" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.5"
+        android:pathData="M16,10h16v9a8,8 0 0,1 -16,0z" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:pathData="M16,13h-5v3a6,6 0 0,0 6,6M32,13h5v3a6,6 0 0,1 -6,6" />
+</vector>

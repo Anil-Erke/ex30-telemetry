@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  EX30 Telemetri simgesi: telemetri gostergesi.
+    - 250 derecelik skala yayi (sonuk ray + kehribar dolu kisim)
+    - ibre + gobek, yay ucunda canli deger noktasi
+    - yayin acik agzinda yukselen veri cubuklari
+
+  Motif bilerek Yol Analizi'nden (irtifa profili + rota cizgisi + simsek)
+  tamamen ayri: arac menusunde iki uygulama ilk bakista ayirt edilsin.
+  Geometri 108 birimlik viewport'ta, merkez (54,59), yaricap 26 —
+  tum icerik guvenli alanda (merkezden ~33 birim) kaliyor.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Skala rayi: 215 derece -> -35 derece -->
+    <path
+        android:strokeColor="#223B55"
+        android:strokeWidth="8.2"
+        android:strokeLineCap="round"
+        android:pathData="M32.70,73.91 A26,26 0 1 1 75.30,73.91" />
+
+    <!-- Dolu kisim: 215 derece -> 62 derece (ibrenin gosterdigi deger) -->
+    <path
+        android:strokeWidth="8.2"
+        android:strokeLineCap="round"
+        android:pathData="M32.70,73.91 A26,26 0 0 1 66.21,36.04">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:type="linear"
+                android:startX="32.70"
+                android:startY="73.91"
+                android:endX="66.21"
+                android:endY="36.04"
+                android:startColor="#FF7A2F"
+                android:endColor="#FFD166" />
+        </aapt:attr>
+    </path>
+
+    <!-- Veri cubuklari -->
+    <path
+        android:fillColor="#7AA6CC"
+        android:pathData="M45.50,73.50 A2.5,2.5 0 0 1 50.50,73.50 L50.50,74.50 A2.5,2.5 0 0 1 45.50,74.50 Z" />
+    <path
+        android:fillColor="#7AA6CC"
+        android:pathData="M52.50,70.50 A2.5,2.5 0 0 1 57.50,70.50 L57.50,74.50 A2.5,2.5 0 0 1 52.50,74.50 Z" />
+    <path
+        android:fillColor="#7AA6CC"
+        android:pathData="M59.50,67.50 A2.5,2.5 0 0 1 64.50,67.50 L64.50,74.50 A2.5,2.5 0 0 1 59.50,74.50 Z" />
+
+    <!-- Ibre -->
+    <path
+        android:strokeColor="#F0F5FB"
+        android:strokeWidth="5.4"
+        android:strokeLineCap="round"
+        android:pathData="M55.41,56.35 L62.69,42.67" />
+
+    <!-- Gobek -->
+    <path
+        android:fillColor="#F0F5FB"
+        android:pathData="M54,59 m-5.5,0 a5.5,5.5 0 1,0 11,0 a5.5,5.5 0 1,0 -11,0" />
+    <path
+        android:fillColor="#07111F"
+        android:pathData="M54,59 m-2.3,0 a2.3,2.3 0 1,0 4.6,0 a2.3,2.3 0 1,0 -4.6,0" />
+
+    <!-- Canli deger noktasi -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M66.21,36.04 m-4.4,0 a4.4,4.4 0 1,0 8.8,0 a4.4,4.4 0 1,0 -8.8,0" />
+</vector>

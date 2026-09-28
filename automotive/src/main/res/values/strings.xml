@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  VARSAYILAN (İngilizce) dizgeler.
+
+  Android kaynak çözümlemesi gereği: sistem dili Türkçe ise values-tr/ kullanılır,
+  BAŞKA HER DİLDE bu dosya kullanılır. "Türkçeyse Türkçe, değilse İngilizce"
+  kuralının tamamı bu iki dosyanın varlığından ibaret — kodda dil kontrolü yok.
+
+  Yeni dizge eklerken values-tr/strings.xml'e de ekle; eksik kalan anahtar
+  sessizce İngilizce görünür.
+-->
+<resources>
+    <string name="app_name">EX30 Telemetry</string>
+
+    <!-- ===== Canlı ekran (Surface'e çizilenler) ===== -->
+    <string name="live_title">EX30 ROUTE ANALYSIS</string>
+    <string name="live_calculating">calculating…</string>
+    <string name="live_waiting_trip">waiting for trip</string>
+    <string name="live_window">last %1$d km</string>
+    <string name="live_trip_avg">trip avg.</string>
+    <string name="live_consumption_unit">kWh/100 km</string>
+    <string name="live_max_speed">max %1$s km/h</string>
+    <string name="live_altitude">Altitude</string>
+    <string name="live_speed">Speed</string>
+    <string name="live_avg_speed">Average speed</string>
+    <string name="live_outside">Outside</string>
+    <string name="live_distance">Distance</string>
+    <string name="live_duration">Duration</string>
+    <string name="live_alt_climb">· climb %1$s kWh</string>
+    <string name="live_alt_regen">· regen %1$s kWh</string>
+    <string name="live_alt_bridged">· %1$s%% without GPS</string>
+
+    <!-- ===== Şablon tabanlı canlı ekran taslağı (Surface'siz) ===== -->
+    <string name="pane_trip">Trip</string>
+    <string name="pane_trip_avg">trip avg. %1$s</string>
+    <string name="pane_range">range %1$s</string>
+    <string name="pane_outside">outside %1$s</string>
+    <string name="pane_speed_line">average %1$s · max %2$s</string>
+    <string name="pane_climb_regen">climb %1$s · regen %2$s</string>
+    <string name="pane_record">Record: %1$s</string>
+
+    <!-- Yolculuk durumu rozeti -->
+    <string name="state_idle">IDLE</string>
+    <string name="state_ready">READY</string>
+    <string name="state_active">ACTIVE</string>
+    <string name="state_closing">CLOSING</string>
+
+    <!-- ===== Üst çubuk aksiyonları ===== -->
+    <string name="act_history">History</string>
+    <string name="act_records">Records</string>
+    <string name="act_new">New</string>
+    <string name="act_measure">Measure</string>
+    <string name="act_pro">Pro</string>
+    <string name="toast_new_trip">New trip started</string>
+    <string name="banner_record">" — record"</string>
+
+    <!-- ===== Biçimleme ===== -->
+    <string name="fmt_percent">%1$s%%</string>
+    <string name="fmt_hours_minutes">%1$d h %2$d min</string>
+    <string name="fmt_minutes">%1$d min</string>
+    <string name="fmt_date_time">MMM d · HH:mm</string>
+    <string name="fmt_no_consumption">consumption not measured</string>
+    <string name="fmt_none">—</string>
+
+    <!-- ===== Yolculuklar ===== -->
+    <string name="trips_title">Trips</string>
+    <string name="trips_title_limited">Trips (%1$d of %2$d)</string>
+    <string name="trips_empty">No trips recorded yet</string>
+
+    <!-- ===== Rekorlar ===== -->
+    <string name="records_title">Records</string>
+    <string name="records_pending">not measured yet</string>
+    <string name="records_auto">captured automatically while driving</string>
+    <string name="records_stats">Statistics</string>
+    <string name="records_stats_sub">total distance, average consumption, temperature bands</string>
+    <string name="records_accuracy">Measurement accuracy</string>
+    <string name="records_accuracy_1">vehicle speed 10 Hz · interpolation between samples</string>
+    <string name="records_accuracy_2">±50 ms base uncertainty from timestamps</string>
+
+    <string name="perf_0_100">0-100 km/h</string>
+    <string name="perf_0_60">0-60 km/h</string>
+    <string name="perf_80_120">80-120 km/h</string>
+    <string name="perf_100_0">100-0 braking</string>
+
+    <!-- ===== İstatistikler ===== -->
+    <string name="stats_title">Statistics</string>
+    <string name="stats_total">Total</string>
+    <string name="stats_total_trips">%1$s · %2$d trips</string>
+    <string name="stats_used_regen">used %1$s · regen %2$s</string>
+    <string name="stats_avg_consumption">Average consumption</string>
+    <string name="stats_pending">not measured yet</string>
+    <string name="stats_total_climb">total climb %1$s</string>
+    <string name="stats_range_gauge">Range indicator</string>
+    <string name="stats_range_needs">at least %1$d km of driving required</string>
+    <string name="stats_range_weighted">weighted by distance</string>
+    <string name="stats_no_data">no data</string>
+    <string name="stats_band_trips">%1$d trips · %2$s</string>
+
+    <string name="range_accurate">indicator accurate</string>
+    <string name="range_optimistic">%1$s%% optimistic</string>
+    <string name="range_pessimistic">%1$s%% pessimistic</string>
+
+    <!-- ===== Yolculuk ayrıntısı ===== -->
+    <string name="detail_distance_time">Distance and time</string>
+    <string name="detail_consumption">Consumption</string>
+    <string name="detail_not_measured">not measured</string>
+    <string name="detail_used_regen">used %1$s · regen %2$s</string>
+    <string name="detail_speed">Speed</string>
+    <string name="detail_speed_avg">average %1$s</string>
+    <string name="detail_speed_max">max %1$s</string>
+    <string name="detail_range_audit">Range check</string>
+    <string name="detail_range_needs">at least %1$d km required</string>
+    <string name="detail_range_gauge">indicator %1$s → %2$s</string>
+    <string name="detail_charge">Charge</string>
+    <string name="detail_no_charge">no charge data</string>
+    <string name="detail_soc_delta">≈ %1$s (±%2$s resolution)</string>
+    <string name="detail_outside_temp">Outside temperature</string>
+    <string name="detail_temp_start">start %1$s</string>
+    <string name="detail_temp_avg">average %1$s</string>
+    <string name="detail_altitude">Altitude</string>
+    <string name="detail_climb_potential">potential energy of climb %1$s</string>
+    <string name="detail_regen_eff">Regen efficiency (estimate)</string>
+    <string name="detail_regen_needs">at least %1$d m of descent required</string>
+    <string name="detail_descent_potential">potential energy of descent %1$s</string>
+
+    <!-- ===== İzinler ===== -->
+    <string name="perm_title">Permissions required</string>
+    <string name="perm_message">Distance and altitude are calculated from location, consumption and range from vehicle data. No data leaves the car.</string>
+    <string name="perm_grant">Grant</string>
+
+    <!-- ===== Pro ===== -->
+    <string name="pro_title">EX30 Route Analysis Pro</string>
+    <string name="pro_trial_left">Trial: %1$d days left.</string>
+    <string name="pro_trial_over">The 14-day trial has ended.</string>
+    <string name="pro_body">A one-time purchase unlocks the app permanently: trip recording, history, statistics, records and measurement. No subscription.</string>
+    <string name="pro_phone_note">Payment is completed on your phone — Play on the car screen will redirect you there. This screen opens by itself once the payment is done.</string>
+    <string name="pro_buy">Buy · %1$s</string>
+    <string name="pro_price_loading">Fetching price…</string>
+    <string name="pro_restore">Restore purchase</string>
+    <string name="pro_checking">Checking…</string>
+    <string name="pro_no_connection">Could not reach Play Store, please try again shortly</string>
+    <string name="pro_purchase_failed">Purchase could not be opened right now</string>
+
+    <!-- ===== Dışa aktarma ===== -->
+    <string name="export_failed">Export failed</string>
+    <string name="export_partial">%1$d files exported, %2$d failed</string>
+    <string name="export_ok">Downloads/%1$s → %2$d files%3$s</string>
+    <string name="export_age">· %1$d hours of content</string>
+
+    <!-- ===== Araç verileri (ölçüm ekranı) ===== -->
+    <string name="calib_title">Vehicle data</string>
+    <string name="calib_export">Export</string>
+    <string name="calib_not_started">Measurement not started</string>
+    <string name="calib_no_car_service">Could not connect to the car service</string>
+    <string name="calib_no_data">⚠ No vehicle data</string>
+
+    <string name="calib_location">Location</string>
+    <string name="calib_no_fix">no fix yet</string>
+    <string name="calib_location_sub">distance and altitude come only from here</string>
+    <string name="calib_no_altitude">no altitude</string>
+    <string name="calib_accuracy">· ±%1$s m</string>
+    <string name="calib_fix_age">· %1$s s ago</string>
+
+    <string name="calib_speed">Speed</string>
+    <string name="calib_speed_values">display %1$s  ·  raw %2$s</string>
+    <string name="calib_speed_unreadable">display speed cannot be read</string>
+
+    <string name="calib_battery">Battery</string>
+    <string name="calib_no_events">no data received</string>
+
+    <string name="calib_range">Remaining range</string>
+
+    <string name="calib_power">Instant power</string>
+    <string name="calib_power_draw">consumption</string>
+    <string name="calib_power_regen">regen</string>
+    <string name="calib_power_value">%1$s kW — %2$s</string>
+    <string name="calib_range_text">range %1$s</string>
+
+    <string name="calib_outside_temp">Outside temperature</string>
+    <string name="calib_temp_note">absorbs heat while parked; more accurate while moving</string>
+
+    <string name="calib_gear">Gear</string>
+    <string name="calib_gear_park">P — park</string>
+    <string name="calib_gear_reverse">R — reverse</string>
+    <string name="calib_gear_neutral">N — neutral</string>
+    <string name="calib_gear_drive">D — drive</string>
+    <string name="calib_gear_events">%1$d events · %2$d changes</string>
+
+    <string name="calib_trip">Trip — %1$s</string>
+    <string name="calib_trip_values">%1$s km · %2$d min</string>
+    <string name="calib_no_open_trip">no open trip</string>
+    <string name="calib_trip_bridged">%1$s%% of distance from speed instead of location</string>
+    <string name="calib_trip_from_location">distance from location</string>
+    <string name="calib_trip_starts">starts when the ignition turns on</string>
+
+    <string name="calib_energy_check">Energy verification</string>
+    <string name="calib_energy_values">power integral %1$s ↔ battery %2$s</string>
+    <string name="calib_energy_waiting">waiting for a battery change</string>
+
+    <string name="calib_log">Measurement log</string>
+    <string name="calib_log_full">⚠ Log full — recording STOPPED</string>
+    <string name="calib_log_size">%1$s / %2$d MiB%3$s</string>
+    <string name="calib_log_rotations">· rotated %1$d times</string>
+    <string name="calib_log_stuck">file could not be rotated; no new lines are written</string>
+    <string name="calib_log_rotates">when full it moves to calib-prev.csv and a new one opens</string>
+
+    <string name="calib_trip_skipped">⚠ Last trip was not saved</string>
+    <string name="calib_skip_values">%1$s m / %2$d s — threshold %3$d m / %4$d s</string>
+    <string name="calib_skip_note">distance comes from GPS; without a fix the trip looks short</string>
+
+    <string name="calib_step_no_change">last %1$s · no change seen yet (%2$d events)</string>
+    <string name="calib_step_line">last %1$s · step ≥ %2$s%3$s%4$s · %5$d changes</string>
+    <string name="calib_step_min_gap">· min %1$s s</string>
+    <string name="calib_step_mean_gap">· avg %1$s s</string>
+    <string name="calib_rate_line">%1$s → measured %2$s Hz · ±%3$s ms · %4$d events%5$s</string>
+    <string name="calib_rate_invalid">· %1$d invalid</string>
+
+    <string name="calib_verdict_mw">raw value is mW</string>
+    <string name="calib_verdict_w">raw value is W</string>
+    <string name="calib_verdict_none">neither unit matched</string>
+
+    <!-- ===== Araç veri akışı (ölçüm ekranında tanılama satırı olarak görünür) ===== -->
+    <string name="car_sub_not_started">not started</string>
+    <string name="car_sub_polled">polling @ %1$d ms</string>
+    <string name="car_sub_none">none — %1$s</string>
+    <string name="car_sub_service_off">car service off</string>
+    <string name="car_sub_undefined">not defined in the SDK</string>
+    <string name="car_sub_not_reported">not reported by the car / no permission</string>
+    <string name="car_sub_unreadable">cannot be read</string>
+    <string name="car_err_service_missing">Car service not found</string>
+    <string name="car_err_no_manager">CarPropertyManager unavailable</string>
+
+    <!-- ===== Property sondası (Android 15 sonrası ölçüm) ===== -->
+    <string name="probe_title">Property probe</string>
+    <string name="probe_running">Probing…</string>
+    <string name="probe_running_hint">Connecting to the car service and reading every target property.</string>
+    <string name="probe_failed">Probe failed</string>
+    <string name="probe_retry_hint">Tap to try again.</string>
+    <string name="probe_car_off">Car service unavailable</string>
+    <string name="probe_odometer">Odometer</string>
+    <string name="probe_odometer_hint">Was it opened to third parties by CAR_MILEAGE_3P?</string>
+    <string name="probe_gauge_candidates">Gauge candidates</string>
+    <string name="probe_batt_temp">Battery temperature</string>
+    <string name="probe_real_capacity">Usable capacity</string>
+    <string name="probe_group_count">%1$d of %2$d returned a value</string>
+    <string name="probe_none_came">none</string>
+    <string name="probe_permissions">Permissions</string>
+    <string name="probe_perm_count">%1$d of %2$d granted · tap to request again</string>
+    <string name="probe_perm_all">all granted</string>
+    <string name="probe_platform">Platform</string>
+    <string name="probe_counts">%1$d properties reported · %2$d constants known · %3$d unnamed</string>
+    <string name="probe_report">Report file</string>
+    <string name="probe_not_exported">not written</string>
+    <string name="probe_report_hint">Full dump goes to Downloads/EX30YolAnalizi.</string>
+    <string name="probe_rerun">Run again</string>
+    <string name="probe_rerun_hint">Values differ while parked and while driving.</string>
+    <string name="probe_ok">read</string>
+    <string name="probe_no_value">no live value</string>
+    <string name="probe_error">error</string>
+    <string name="calib_probe">Property probe</string>
+    <string name="calib_probe_hint">Which data does the car actually provide?</string>
+    <string name="calib_version">App version</string>
+    <string name="live_energy">Energy</string>
+    <string name="live_capacity">Capacity</string>
+    <string name="perm_settings">App settings</string>
+    <string name="perm_blocked">Not available while driving. Park the car and try again.</string>
+    <string name="probe_perm_undefined">undefined on this platform: %1$s</string>
+    <string name="perm_launch_error">Could not open — %1$s</string>
+    <string name="calib_wheel">Distance · GPS vs wheels</string>
+    <string name="calib_wheel_values">GPS %1$s km  ·  wheels %2$s km</string>
+    <string name="calib_wheel_bias">GPS reads %1$s%% vs wheel ticks</string>
+    <string name="calib_wheel_waiting">wheel ticks not available yet</string>
+    <string name="calib_wheel_short">trip too short to compare</string>
+    <string name="calib_wheel_unreliable">⚠ GPS unreliable (%1$s%%) — altitude data suspect too</string>
+    <string name="live_alt_gps_bad">⚠ GPS unreliable, climb understated</string>
+
+    <!-- ===== Arka plan konumu ===== -->
+    <string name="calib_bg_location">Background location</string>
+    <string name="calib_bg_on">On — fixes keep coming when you switch apps</string>
+    <string name="calib_bg_off">Off — Android thins out fixes in the background</string>
+    <string name="calib_bg_denied">no location permission</string>
+    <string name="calib_bg_note">altitude only comes from location; distance can fall back to vehicle speed</string>
+
+    <!-- ===== Görünüm ayarı ===== -->
+    <string name="calib_window">Window</string>
+    <string name="calib_window_sub">tap to change · charts, consumption and average speed all use it</string>
+
+    <string name="calib_theme">Appearance</string>
+    <string name="calib_theme_auto">Automatic (follows the car)</string>
+    <string name="calib_theme_dark">Always dark</string>
+    <string name="calib_theme_light">Always light</string>
+    <string name="calib_theme_sub">tap to change · source: %1$s</string>
+    <string name="calib_theme_src_car">the car\'s night mode</string>
+    <string name="calib_theme_src_host">app theme (car does not report night mode)</string>
+    <string name="calib_theme_src_manual">set by hand</string>
+
+    <!-- ===== Drive'a aktarma ===== -->
+    <string name="calib_drive">Upload to Drive</string>
+    <string name="calib_drive_hint">uploads the records to a Google Drive folder</string>
+    <string name="calib_drive_busy">uploading…</string>
+    <string name="calib_drive_off">not configured</string>
+    <string name="drive_busy">Uploading to Drive…</string>
+    <string name="drive_ok">Drive → %1$d files%2$s</string>
+    <string name="drive_partial">%1$d files uploaded, %2$d failed: %3$s</string>
+    <string name="drive_failed">Upload to Drive failed: %1$s</string>
+    <string name="drive_nothing">Nothing to upload</string>
+    <string name="drive_unreadable">file could not be read</string>
+    <string name="drive_not_configured">Drive endpoint is not set (drive.properties)</string>
+
+    <!-- ===== Ön plan servisi bildirimi ===== -->
+    <string name="fgs_channel">Trip recording</string>
+    <string name="fgs_title">Recording the trip</string>
+    <string name="fgs_text">Altitude and distance keep being measured in other apps too</string>
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Temali simge katmani (API 33+). Sistem bu katmani tek renge boyar; bu yuzden
+  renkli surumun ic detaylari (gobek deligi, gradyan) burada yok, siluet var.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108"
+    android:tint="#FFFFFF">
+
+    <!-- Skala yayi -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="7.6"
+        android:strokeLineCap="round"
+        android:pathData="M32.70,73.91 A26,26 0 1 1 75.30,73.91" />
+
+    <!-- Veri cubuklari -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M45.50,73.50 A2.5,2.5 0 0 1 50.50,73.50 L50.50,74.50 A2.5,2.5 0 0 1 45.50,74.50 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M52.50,70.50 A2.5,2.5 0 0 1 57.50,70.50 L57.50,74.50 A2.5,2.5 0 0 1 52.50,74.50 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M59.50,67.50 A2.5,2.5 0 0 1 64.50,67.50 L64.50,74.50 A2.5,2.5 0 0 1 59.50,74.50 Z" />
+
+    <!-- Ibre + gobek -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5.4"
+        android:strokeLineCap="round"
+        android:pathData="M55.41,56.35 L62.69,42.67" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,59 m-5.5,0 a5.5,5.5 0 1,0 11,0 a5.5,5.5 0 1,0 -11,0" />
+</vector>

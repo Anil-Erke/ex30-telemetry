@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Türkçe dizgeler. Sistem dili Türkçe olduğunda bu dosya kullanılır;
+  diğer her dilde values/strings.xml (İngilizce) devreye girer.
+
+  Kesme işareti Android kaynaklarında kaçırılmak zorunda: \' yaz.
+-->
+<resources>
+    <string name="app_name">EX30 Telemetri</string>
+
+    <!-- ===== Canlı ekran ===== -->
+    <string name="live_title">EX30 YOL ANALİZİ</string>
+    <string name="live_calculating">hesaplanıyor…</string>
+    <string name="live_waiting_trip">yolculuk bekleniyor</string>
+    <string name="live_window">son %1$d km</string>
+    <string name="live_trip_avg">yolculuk ort.</string>
+    <string name="live_consumption_unit">kWh/100 km</string>
+    <string name="live_max_speed">azami %1$s km/h</string>
+    <string name="live_altitude">İrtifa</string>
+    <string name="live_speed">Hız</string>
+    <string name="live_avg_speed">Ortalama hız</string>
+    <string name="live_outside">Dış</string>
+    <string name="live_distance">Mesafe</string>
+    <string name="live_duration">Süre</string>
+    <string name="live_alt_climb">· tırmanış %1$s kWh</string>
+    <string name="live_alt_regen">· rejen %1$s kWh</string>
+    <string name="live_alt_bridged">· %%%1$s konumsuz</string>
+
+    <!-- ===== Şablon tabanlı canlı ekran taslağı (Surface'siz) ===== -->
+    <string name="pane_trip">Yolculuk</string>
+    <string name="pane_trip_avg">yolculuk ort. %1$s</string>
+    <string name="pane_range">menzil %1$s</string>
+    <string name="pane_outside">dış %1$s</string>
+    <string name="pane_speed_line">ortalama %1$s · azami %2$s</string>
+    <string name="pane_climb_regen">tırmanış %1$s · rejen %2$s</string>
+    <string name="pane_record">Rekor: %1$s</string>
+
+    <string name="state_idle">BEKLEME</string>
+    <string name="state_ready">HAZIR</string>
+    <string name="state_active">AKTİF</string>
+    <string name="state_closing">KAPANIYOR</string>
+
+    <!-- ===== Üst çubuk aksiyonları ===== -->
+    <string name="act_history">Geçmiş</string>
+    <string name="act_records">Rekorlar</string>
+    <string name="act_new">Yeni</string>
+    <string name="act_measure">Ölçüm</string>
+    <string name="act_pro">Pro</string>
+    <string name="toast_new_trip">Yeni yolculuk başlatıldı</string>
+    <string name="banner_record">" — rekor"</string>
+
+    <!-- ===== Biçimleme ===== -->
+    <!-- Türkçede yüzde işareti sayının ÖNÜNDE: "%57" -->
+    <string name="fmt_percent">%%%1$s</string>
+    <string name="fmt_hours_minutes">%1$d sa %2$d dk</string>
+    <string name="fmt_minutes">%1$d dk</string>
+    <string name="fmt_date_time">d MMM · HH:mm</string>
+    <string name="fmt_no_consumption">tüketim ölçülemedi</string>
+    <string name="fmt_none">—</string>
+
+    <!-- ===== Yolculuklar ===== -->
+    <string name="trips_title">Yolculuklar</string>
+    <string name="trips_title_limited">Yolculuklar (%2$d kayıttan %1$d)</string>
+    <string name="trips_empty">Henüz kayıtlı yolculuk yok</string>
+
+    <!-- ===== Rekorlar ===== -->
+    <string name="records_title">Rekorlar</string>
+    <string name="records_pending">henüz ölçülmedi</string>
+    <string name="records_auto">sürüş sırasında kendiliğinden yakalanır</string>
+    <string name="records_stats">İstatistikler</string>
+    <string name="records_stats_sub">toplam mesafe, ortalama tüketim, sıcaklık bantları</string>
+    <string name="records_accuracy">Ölçüm hassasiyeti</string>
+    <string name="records_accuracy_1">araç hızı 10 Hz · örnekler arası interpolasyon</string>
+    <string name="records_accuracy_2">zaman damgaları nedeniyle ±50 ms taban belirsizlik</string>
+
+    <string name="perf_0_100">0-100 km/h</string>
+    <string name="perf_0_60">0-60 km/h</string>
+    <string name="perf_80_120">80-120 km/h</string>
+    <string name="perf_100_0">100-0 fren</string>
+
+    <!-- ===== İstatistikler ===== -->
+    <string name="stats_title">İstatistikler</string>
+    <string name="stats_total">Toplam</string>
+    <string name="stats_total_trips">%1$s · %2$d yolculuk</string>
+    <string name="stats_used_regen">harcanan %1$s · rejen %2$s</string>
+    <string name="stats_avg_consumption">Ortalama tüketim</string>
+    <string name="stats_pending">henüz ölçülemedi</string>
+    <string name="stats_total_climb">toplam tırmanış %1$s</string>
+    <string name="stats_range_gauge">Menzil göstergesi</string>
+    <string name="stats_range_needs">en az %1$d km\'lik yolculuk gerekiyor</string>
+    <string name="stats_range_weighted">mesafeye göre ağırlıklı ortalama</string>
+    <string name="stats_no_data">veri yok</string>
+    <string name="stats_band_trips">%1$d yolculuk · %2$s</string>
+
+    <string name="range_accurate">gösterge tutarlı</string>
+    <string name="range_optimistic">%%%1$s iyimser</string>
+    <string name="range_pessimistic">%%%1$s kötümser</string>
+
+    <!-- ===== Yolculuk ayrıntısı ===== -->
+    <string name="detail_distance_time">Mesafe ve süre</string>
+    <string name="detail_consumption">Tüketim</string>
+    <string name="detail_not_measured">ölçülemedi</string>
+    <string name="detail_used_regen">harcanan %1$s · rejen %2$s</string>
+    <string name="detail_speed">Hız</string>
+    <string name="detail_speed_avg">ortalama %1$s</string>
+    <string name="detail_speed_max">azami %1$s</string>
+    <string name="detail_range_audit">Menzil denetimi</string>
+    <string name="detail_range_needs">en az %1$d km gerekiyor</string>
+    <string name="detail_range_gauge">gösterge %1$s → %2$s</string>
+    <string name="detail_charge">Şarj</string>
+    <string name="detail_no_charge">şarj verisi yok</string>
+    <string name="detail_soc_delta">≈ %1$s (±%2$s çözünürlük)</string>
+    <string name="detail_outside_temp">Dış sıcaklık</string>
+    <string name="detail_temp_start">başlangıç %1$s</string>
+    <string name="detail_temp_avg">ortalama %1$s</string>
+    <string name="detail_altitude">Rakım</string>
+    <string name="detail_climb_potential">tırmanışın potansiyel enerjisi %1$s</string>
+    <string name="detail_regen_eff">Rejen verimi (tahmin)</string>
+    <string name="detail_regen_needs">en az %1$d m iniş gerekiyor</string>
+    <string name="detail_descent_potential">inişin potansiyel enerjisi %1$s</string>
+
+    <!-- ===== İzinler ===== -->
+    <string name="perm_title">İzinler gerekli</string>
+    <string name="perm_message">Mesafe ve irtifa konumdan, tüketim ve menzil araç verisinden hesaplanıyor. Hiçbir veri dışarı gönderilmez.</string>
+    <string name="perm_grant">İzin ver</string>
+
+    <!-- ===== Pro ===== -->
+    <string name="pro_title">EX30 Yol Analizi Pro</string>
+    <string name="pro_trial_left">Deneme süresi: %1$d gün kaldı.</string>
+    <string name="pro_trial_over">14 günlük deneme süresi doldu.</string>
+    <string name="pro_body">Tek seferlik satın almayla uygulama kalıcı olarak açılır: yolculuk kaydı, geçmiş, istatistikler, rekorlar ve ölçüm. Abonelik yok.</string>
+    <string name="pro_phone_note">Ödeme telefonunuzda tamamlanır — araç ekranındaki Play sizi telefonunuza yönlendirecek. Ödeme bitince bu ekran kendiliğinden açılır.</string>
+    <string name="pro_buy">Satın al · %1$s</string>
+    <string name="pro_price_loading">Fiyat alınıyor…</string>
+    <string name="pro_restore">Satın almayı geri yükle</string>
+    <string name="pro_checking">Kontrol ediliyor…</string>
+    <string name="pro_no_connection">Play Store\'a bağlanılamadı, birazdan tekrar deneyin</string>
+    <string name="pro_purchase_failed">Satın alma şu anda açılamadı</string>
+
+    <!-- ===== Dışa aktarma ===== -->
+    <string name="export_failed">Dışa aktarılamadı</string>
+    <string name="export_partial">%1$d dosya aktarıldı, %2$d başarısız</string>
+    <string name="export_ok">İndirilenler/%1$s → %2$d dosya%3$s</string>
+    <string name="export_age">· içerik %1$d saatlik</string>
+
+    <!-- ===== Araç verileri (ölçüm ekranı) ===== -->
+    <string name="calib_title">Araç verileri</string>
+    <string name="calib_export">Dışa aktar</string>
+    <string name="calib_not_started">Ölçüm başlatılmadı</string>
+    <string name="calib_no_car_service">Car servisine bağlanılamadı</string>
+    <string name="calib_no_data">⚠ Araç verisi yok</string>
+
+    <string name="calib_location">Konum</string>
+    <string name="calib_no_fix">henüz sabitleme yok</string>
+    <string name="calib_location_sub">mesafe ve irtifa yalnızca buradan geliyor</string>
+    <string name="calib_no_altitude">irtifa yok</string>
+    <string name="calib_accuracy">· ±%1$s m</string>
+    <string name="calib_fix_age">· %1$s sn önce</string>
+
+    <string name="calib_speed">Hız</string>
+    <string name="calib_speed_values">gösterge %1$s  ·  ham %2$s</string>
+    <string name="calib_speed_unreadable">gösterge hızı okunamıyor</string>
+
+    <string name="calib_battery">Batarya</string>
+    <string name="calib_no_events">veri gelmedi</string>
+
+    <string name="calib_range">Kalan menzil</string>
+
+    <string name="calib_power">Anlık güç</string>
+    <string name="calib_power_draw">tüketim</string>
+    <string name="calib_power_regen">rejen</string>
+    <string name="calib_power_value">%1$s kW — %2$s</string>
+    <string name="calib_range_text">aralık %1$s</string>
+
+    <string name="calib_outside_temp">Dış sıcaklık</string>
+    <string name="calib_temp_note">araç dururken ısı yutar; hareket hâlinde daha doğru</string>
+
+    <string name="calib_gear">Vites</string>
+    <string name="calib_gear_park">P — park</string>
+    <string name="calib_gear_reverse">R — geri</string>
+    <string name="calib_gear_neutral">N — boş</string>
+    <string name="calib_gear_drive">D — ileri</string>
+    <string name="calib_gear_events">%1$d olay · %2$d değişim</string>
+
+    <string name="calib_trip">Yolculuk — %1$s</string>
+    <string name="calib_trip_values">%1$s km · %2$d dk</string>
+    <string name="calib_no_open_trip">açık yolculuk yok</string>
+    <string name="calib_trip_bridged">mesafenin %%%1$s\'i konum yerine hızdan</string>
+    <string name="calib_trip_from_location">mesafe konumdan</string>
+    <string name="calib_trip_starts">kontak açılınca başlar</string>
+
+    <string name="calib_energy_check">Enerji doğrulaması</string>
+    <string name="calib_energy_values">güç integrali %1$s ↔ batarya %2$s</string>
+    <string name="calib_energy_waiting">batarya değişimi bekleniyor</string>
+
+    <string name="calib_log">Ölçüm günlüğü</string>
+    <string name="calib_log_full">⚠ Günlük dolu — kayıt DURDU</string>
+    <string name="calib_log_size">%1$s / %2$d MiB%3$s</string>
+    <string name="calib_log_rotations">· %1$d kez döndürüldü</string>
+    <string name="calib_log_stuck">dosya döndürülemedi; yeni satır yazılmıyor</string>
+    <string name="calib_log_rotates">dolunca calib-prev.csv\'ye taşınıp yenisi açılır</string>
+
+    <string name="calib_trip_skipped">⚠ Son yolculuk kaydedilmedi</string>
+    <string name="calib_skip_values">%1$s m / %2$d sn — eşik %3$d m / %4$d sn</string>
+    <string name="calib_skip_note">mesafe GPS\'ten geliyor; fix yoksa yolculuk kısa görünür</string>
+
+    <string name="calib_step_no_change">son %1$s · henüz değişim görülmedi (%2$d olay)</string>
+    <string name="calib_step_line">son %1$s · adım ≥ %2$s%3$s%4$s · %5$d değişim</string>
+    <string name="calib_step_min_gap">· en kısa %1$s sn</string>
+    <string name="calib_step_mean_gap">· ort. %1$s sn</string>
+    <string name="calib_rate_line">%1$s → ölçülen %2$s Hz · ±%3$s ms · %4$d olay%5$s</string>
+    <string name="calib_rate_invalid">· %1$d geçersiz</string>
+
+    <string name="calib_verdict_mw">ham değer mW</string>
+    <string name="calib_verdict_w">ham değer W</string>
+    <string name="calib_verdict_none">hiçbiri eşleşmedi</string>
+
+    <!-- ===== Araç veri akışı (ölçüm ekranında tanılama satırı olarak görünür) ===== -->
+    <string name="car_sub_not_started">başlatılmadı</string>
+    <string name="car_sub_polled">yoklama @ %1$d ms</string>
+    <string name="car_sub_none">yok — %1$s</string>
+    <string name="car_sub_service_off">Car servisi kapalı</string>
+    <string name="car_sub_undefined">SDK\'da tanımsız</string>
+    <string name="car_sub_not_reported">araç bildirmiyor / izin yok</string>
+    <string name="car_sub_unreadable">okunamıyor</string>
+    <string name="car_err_service_missing">Car servisi bulunamadı</string>
+    <string name="car_err_no_manager">CarPropertyManager yok</string>
+
+    <!-- ===== Property sondası (Android 15 sonrası ölçüm) ===== -->
+    <string name="probe_title">Property sondası</string>
+    <string name="probe_running">Sonda çalışıyor…</string>
+    <string name="probe_running_hint">Car servisine bağlanılıyor ve hedef property\'ler okunuyor.</string>
+    <string name="probe_failed">Sonda çalışmadı</string>
+    <string name="probe_retry_hint">Tekrar denemek için dokunun.</string>
+    <string name="probe_car_off">Car servisine bağlanılamadı</string>
+    <string name="probe_odometer">Kilometre sayacı</string>
+    <string name="probe_odometer_hint">CAR_MILEAGE_3P ile üçüncü partiye açıldı mı?</string>
+    <string name="probe_gauge_candidates">Alt gösterge adayları</string>
+    <string name="probe_batt_temp">Batarya sıcaklığı</string>
+    <string name="probe_real_capacity">Gerçek kapasite</string>
+    <string name="probe_group_count">%2$d taneden %1$d tanesi değer verdi</string>
+    <string name="probe_none_came">hiçbiri</string>
+    <string name="probe_permissions">İzinler</string>
+    <string name="probe_perm_count">%2$d izinden %1$d tanesi verildi · tekrar sormak için dokunun</string>
+    <string name="probe_perm_all">hepsi verildi</string>
+    <string name="probe_platform">Platform</string>
+    <string name="probe_counts">%1$d property bildirildi · %2$d sabit tanımlı · %3$d adsız</string>
+    <string name="probe_report">Rapor dosyası</string>
+    <string name="probe_not_exported">yazılmadı</string>
+    <string name="probe_report_hint">Tam döküm İndirilenler/EX30YolAnalizi altına yazılıyor.</string>
+    <string name="probe_rerun">Tekrar çalıştır</string>
+    <string name="probe_rerun_hint">Park hâlinde ve sürüşte farklı sonuç verebilir.</string>
+    <string name="probe_ok">okundu</string>
+    <string name="probe_no_value">anlık değer yok</string>
+    <string name="probe_error">hata</string>
+    <string name="calib_probe">Property sondası</string>
+    <string name="calib_probe_hint">Araç hangi veriyi gerçekten veriyor?</string>
+    <string name="calib_version">Uygulama sürümü</string>
+    <string name="live_energy">Enerji</string>
+    <string name="live_capacity">Kapasite</string>
+    <string name="perm_settings">Ayarları aç</string>
+    <string name="perm_blocked">Sürüş sırasında açılmıyor. Aracı durdurup tekrar deneyin.</string>
+    <string name="probe_perm_undefined">platformda tanımsız: %1$s</string>
+    <string name="perm_launch_error">Açılamadı — %1$s</string>
+    <string name="calib_wheel">Mesafe · GPS ↔ tekerlek</string>
+    <string name="calib_wheel_values">GPS %1$s km  ·  tekerlek %2$s km</string>
+    <string name="calib_wheel_bias">GPS tekerleğe göre %1$s%% sapıyor</string>
+    <string name="calib_wheel_waiting">tekerlek tiki henüz gelmedi</string>
+    <string name="calib_wheel_short">karşılaştırma için yolculuk kısa</string>
+    <string name="calib_wheel_unreliable">⚠ GPS güvenilmez (%1$s%%) — rakım verisi de şüpheli</string>
+    <string name="live_alt_gps_bad">⚠ GPS güvenilmez, tırmanış eksik</string>
+
+    <!-- ===== Arka plan konumu ===== -->
+    <string name="calib_bg_location">Arka plan konumu</string>
+    <string name="calib_bg_on">Açık — başka uygulamaya geçince de konum geliyor</string>
+    <string name="calib_bg_off">Kapalı — Android arka planda konumu seyreltiyor</string>
+    <string name="calib_bg_denied">konum izni yok</string>
+    <string name="calib_bg_note">irtifa yalnızca konumdan gelir; mesafe gerekirse araç hızından yürür</string>
+
+    <!-- ===== Görünüm ayarı ===== -->
+    <string name="calib_window">Pencere</string>
+    <string name="calib_window_sub">değiştirmek için dokunun · grafikler, tüketim ve ortalama hız bu pencereyi kullanır</string>
+
+    <string name="calib_theme">Görünüm</string>
+    <string name="calib_theme_auto">Otomatik (araca uyar)</string>
+    <string name="calib_theme_dark">Her zaman koyu</string>
+    <string name="calib_theme_light">Her zaman açık</string>
+    <string name="calib_theme_sub">değiştirmek için dokunun · kaynak: %1$s</string>
+    <string name="calib_theme_src_car">aracın gece modu</string>
+    <string name="calib_theme_src_host">uygulama teması (araç gece modunu bildirmiyor)</string>
+    <string name="calib_theme_src_manual">elle seçildi</string>
+
+    <!-- ===== Drive'a aktarma ===== -->
+    <string name="calib_drive">Drive\'a aktar</string>
+    <string name="calib_drive_hint">kayıtları Google Drive klasörüne yükler</string>
+    <string name="calib_drive_busy">yükleniyor…</string>
+    <string name="calib_drive_off">yapılandırılmadı</string>
+    <string name="drive_busy">Drive\'a aktarılıyor…</string>
+    <string name="drive_ok">Drive → %1$d dosya%2$s</string>
+    <string name="drive_partial">%1$d dosya yüklendi, %2$d başarısız: %3$s</string>
+    <string name="drive_failed">Drive\'a aktarılamadı: %1$s</string>
+    <string name="drive_nothing">Aktarılacak dosya yok</string>
+    <string name="drive_unreadable">dosya okunamadı</string>
+    <string name="drive_not_configured">Drive adresi tanımlı değil (drive.properties)</string>
+
+    <!-- ===== Ön plan servisi bildirimi ===== -->
+    <string name="fgs_channel">Yolculuk kaydı</string>
+    <string name="fgs_title">Yolculuk kaydediliyor</string>
+    <string name="fgs_text">İrtifa ve mesafe başka uygulamalardayken de ölçülüyor</string>
+</resources>

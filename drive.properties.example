@@ -1,0 +1,18 @@
+# >>> OPTIONAL. COPY THIS FILE TO "drive.properties" AND FILL IN YOUR OWN VALUES.
+# >>> ISTEGE BAGLI. BU DOSYAYI "drive.properties" ADIYLA KOPYALAYIN VE KENDI DEGERLERINIZI GIRIN.
+#
+# Enables the "Export to Drive" button. Setup steps: drive-sync/README.md
+# "Drive'a aktar" dugmesini etkinlestirir. Kurulum adimlari: drive-sync/README.md
+#
+# drive.properties is in .gitignore - NEVER commit it.
+# drive.properties .gitignore icinde - ASLA depoya eklemeyin.
+#
+# If left empty, the app still builds; the button just says "not configured".
+# Bos birakilirsa uygulama yine derlenir; dugme "yapilandirilmadi" der.
+#
+# driveUrl    = the /exec URL of YOUR Apps Script web app      (Apps Script web uygulamanizin /exec adresi)
+# driveSecret = the SAME value as SECRET in YOUR Kod.gs          (Kod.gs icindeki SECRET ile AYNI deger)
+#               letters and digits only                          (yalnizca harf ve rakam)
+
+driveUrl=https://script.google.com/macros/s/YOUR-DEPLOYMENT-ID/exec
+driveSecret=YOUR-WRITE-SECRET

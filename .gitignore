@@ -1,0 +1,26 @@
+# Build output
+.gradle/
+.gradle-user/
+.kotlin/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE / local machine
+.idea/
+*.iml
+.DS_Store
+local.properties
+.claude/
+
+# SECRETS - never commit / GIZLI - asla depoya eklemeyin
+keystore.properties
+drive.properties
+*.jks
+*.keystore
+
+# Signed packages and personal logs / Imzali paketler ve kisisel kayitlar
+*.aab
+*.apk
+sonda/
