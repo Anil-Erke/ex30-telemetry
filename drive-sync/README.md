@@ -1,172 +1,192 @@
-# Drive'a aktarım ucu — kurulum
+# Drive upload endpoint — setup
 
-`Kod.gs`, araçtaki uygulamadan gelen kayıt dosyalarını **My EX30 Trips** klasörüne
-yazan Apps Script web uygulaması. Bu dosya onu yayına almanın adımları.
+**English** · [Türkçe](README.tr.md)
 
-> **English:** this folder is an optional Google Apps Script endpoint that lets the car app
-> upload its log files to **your own** Google Drive. The steps below are in Turkish; the
-> placeholders to fill in are marked `PASTE-…` in `Kod.gs` and `YOUR-…` in
-> `../drive.properties.example`. Until all three values in `Kod.gs` are filled in, the script
-> rejects every request.
+`Kod.gs` is a Google Apps Script web app that writes the log files sent by the
+car app into a folder in **your own** Google Drive (for example **My EX30
+Trips**). This page explains how to deploy it. The setup is **optional**:
+without it the app works normally and the *Upload to Drive* button simply says
+"not configured".
 
-Klasör kimliği `Kod.gs` içindeki `FOLDER_ID` sabitinde durur.
-**KENDİ DRIVE'INIZDA BOŞ BİR KLASÖR AÇIN** ve adres çubuğundaki
-`/folders/<KİMLİK>` kısmını oraya yapıştırın.
+The folder ID lives in the `FOLDER_ID` constant in `Kod.gs`.
+**CREATE AN EMPTY FOLDER IN YOUR OWN DRIVE**, open it, and paste the
+`/folders/<ID>` part of the address bar there.
+
+> Code comments and the script's response messages are in Turkish. The response
+> fields are part of the protocol and are explained in
+> [Protocol summary](#protocol-summary).
 
 ---
 
-## 1. İki anahtar üret
+## 1. Generate two keys
 
-**İki tane** gerekiyor, farklı olmaları önemli:
+You need **two** keys, and they must be different:
 
-| Anahtar | Kim kullanıyor | Nerede duruyor |
+| Key | Used by | Stored in |
 |---|---|---|
-| `SECRET` (yazma) | araçtaki EX30 Telemetry | AAB'nin içinde — **sızabilir** |
-| `READ_SECRET` (okuma) | bilgisayardaki EX30 Trip Viewer | yalnızca `%LOCALAPPDATA%` |
+| `SECRET` (write) | EX30 Telemetry in the car | inside the AAB — **can leak** |
+| `READ_SECRET` (read) | EX30 Trip Viewer on your PC | only in `%LOCALAPPDATA%` |
 
-Ayrı tutmanın sebebi: APK geri derlenebiliyor. Yazma anahtarı sızarsa saldırgan
-klasördeki dosyaları ezebilir ama **okuyamaz**. İkisini aynı yaparsan APK'yı açan
-biri bütün yolculuk geçmişini indirebilir hâle gelir.
+Why two: an APK can be decompiled. If the write key leaks, an attacker can
+overwrite the files in the folder but **cannot read** them. If both keys were the
+same, anyone who opened the APK could download your whole trip history.
 
-URL'de sorgu parametresi olarak gidecekleri için **yalnızca harf ve rakam**
-kullan; `&`, `=`, `+`, `/` karakterleri URL'i bozar. PowerShell'de iki kez
-çalıştır:
+The keys travel as URL query parameters, so use **letters and digits only**;
+`&`, `=`, `+` and `/` would break the URL. Run this twice in PowerShell:
 
 ```powershell
 -join ((48..57)+(65..90)+(97..122) | Get-Random -Count 40 | ForEach-Object {[char]$_})
 ```
 
-Çıkan değerleri sakla. Hiçbir yere paylaşma, depoya ekleme.
+Keep the two values safe. Do not share them and never commit them.
 
-## 2. Script'i oluştur
+## 2. Create the script
 
-1. [script.google.com](https://script.google.com) → **Yeni proje**
-2. Projeye ad ver: `EX30 Telemetry Drive Ucu`
-3. Soldaki `Kod.gs` dosyasının içeriğini sil, bu klasördeki `Kod.gs`'i olduğu gibi yapıştır
-4. **`FOLDER_ID`, `SECRET` ve `READ_SECRET`** satırlarındaki `PASTE-…` yer tutucularını
-   kendi klasör kimliğin ve 1. adımdaki iki anahtarla değiştir. İstersen `TZ`'yi de kendi
-   saat dilimine çevir. Yer tutucular duruyorsa script her isteği reddeder.
-5. Kaydet (Ctrl+S)
-6. Proje kökündeki `drive.properties.example` dosyasını `drive.properties` olarak kopyala;
-   `driveUrl` = 3. adımda çıkan adres, `driveSecret` = **yazma** anahtarı.
+1. [script.google.com](https://script.google.com) → **New project**
+2. Name the project, for example `EX30 Telemetry Drive Endpoint`
+3. Delete the contents of the default `Code.gs` and paste this folder's `Kod.gs`
+   as is
+4. Replace the `PASTE-…` placeholders on the **`FOLDER_ID`, `SECRET` and
+   `READ_SECRET`** lines with your folder ID and the two keys from step 1.
+   Optionally set `TZ` to your time zone (IANA name, e.g. `Europe/Berlin`).
+   While any placeholder is left, the script rejects every request.
+5. Save (Ctrl+S)
+6. In the project root, copy `drive.properties.example` to `drive.properties`:
+   `driveUrl` = the address from step 3, `driveSecret` = the **write** key.
 
-## 3. Web uygulaması olarak yayınla
+## 3. Deploy as a web app
 
-**Dağıt** → **Yeni dağıtım** → dişli → **Web uygulaması**, sonra:
+**Deploy** → **New deployment** → gear icon → **Web app**, then:
 
-| Alan | Değer |
+| Field | Value |
 |---|---|
-| Açıklama | `v1` |
-| Çalıştıran | **Ben** (kendi Google hesabınız) |
-| Erişimi olan | **Herkes** |
+| Description | `v1` |
+| Execute as | **Me** (your own Google account) |
+| Who has access | **Anyone** |
 
-"Çalıştıran: Ben" şart — Drive'a yazan script'in kendisi olacak, araçtaki
-uygulamanın Google kimliği yok. "Erişimi olan: Herkes" de şart; araçtaki uygulama
-oturum açmadan POST edecek.
+"Execute as: Me" is required: the script itself writes to Drive, because the car
+app has no Google identity. "Who has access: Anyone" is also required; the car
+app POSTs without signing in.
 
-İlk dağıtımda Google yetki isteyecek ve **"Bu uygulama doğrulanmadı"** uyarısı
-çıkacak. Kendi hesabında kendi yazdığın script olduğu için beklenen davranış:
-**Gelişmiş** → *(proje adı)* **sayfasına git** → **İzin ver**.
+On the first deployment Google asks for authorisation and shows **"Google hasn't
+verified this app"**. That is expected for your own script in your own account:
+**Advanced** → **Go to** *(project name)* → **Allow**.
 
-Sonunda verilen `https://script.google.com/macros/s/<UZUN-ID>/exec` adresini sakla.
+Keep the `https://script.google.com/macros/s/<LONG-ID>/exec` address you get at
+the end.
 
-> **Kodu her değiştirdiğinde yeni bir SÜRÜM yayınlamak zorundasın.**
-> `Ctrl+S` ile kaydetmek `/exec` adresinin sunduğu kodu değiştirmiyor —
-> orası son *dağıtılmış* sürümü servis etmeye devam ediyor. Doğrusu:
-> **Dağıt → Dağıtımları yönet → kalem simgesi → Sürüm: Yeni sürüm → Dağıt.**
-> Mevcut dağıtımı bu şekilde güncellersen **URL aynı kalır**. "Yeni dağıtım"
-> dersen YENİ bir URL üretilir ve uygulama eski koda bakmaya devam eder —
-> hiçbir hata vermeden.
+> **Every time you change the code you must publish a new VERSION.**
+> Saving with `Ctrl+S` does not change what the `/exec` address serves; it keeps
+> serving the last *deployed* version. The right way:
+> **Deploy → Manage deployments → pencil icon → Version: New version → Deploy.**
+> Updating the existing deployment like this **keeps the same URL**. Choosing
+> "New deployment" creates a NEW URL and the app keeps talking to the old code,
+> without any error.
 
-## 4. Doğrula
+## 4. Verify
 
-**Tarayıcıdan (okuma):** adresi `?k=<OKUMA-ANAHTARI>` ile aç. Klasör boşken beklenen:
+**From a browser (read):** open the address with `?k=<READ-KEY>`. With an empty
+folder you should see:
 
 ```json
 {"klasor":"My EX30 Trips","dosyalar":[],"ok":true}
 ```
 
-`{"ok":false,"hata":"yetkisiz"}` görüyorsan anahtar tutmuyor. **Yazma anahtarı
-burada çalışmaz** — bu bilinçli.
+If you see `{"ok":false,"hata":"yetkisiz"}` ("unauthorised"), the key does not
+match. **The write key does not work here**; that is intentional.
 
-**PowerShell'den (yazma):**
+**From PowerShell (write):**
 
 ```powershell
-$url    = 'https://script.google.com/macros/s/<UZUN-ID>/exec'
-$secret = '<YAZMA-ANAHTARI>'
-$icerik = '[]'
-$bayt   = [Text.Encoding]::UTF8.GetByteCount($icerik)
-$govde  = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($icerik))
-Invoke-RestMethod -Method Post -ContentType 'text/plain; charset=utf-8' -Body $govde -Uri "$($url)?k=$secret&name=records.json&bytes=$bayt&gz=0"
+$url     = 'https://script.google.com/macros/s/<LONG-ID>/exec'
+$secret  = '<WRITE-KEY>'
+$content = '[]'
+$bytes   = [Text.Encoding]::UTF8.GetByteCount($content)
+$body    = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($content))
+Invoke-RestMethod -Method Post -ContentType 'text/plain; charset=utf-8' -Body $body -Uri "$($url)?k=$secret&name=records.json&bytes=$bytes&gz=0"
 ```
 
-Beklenen yanıt `ok = True` ve klasörde `records.json` (2 bayt) + `yukleme-gunlugu.csv`.
-**Bu gerçek bir dosya yazar** — test bittiğinde ikisini de sil, yoksa araçtan gelen
-ilk gerçek veriyle karışır.
+Expected: `ok = True`, and the folder now contains `records.json` (2 bytes) and
+`yukleme-gunlugu.csv` (the upload log). **This writes a real file.** Delete both
+after testing, otherwise they mix with the first real upload from the car.
 
-`gz=0` yalnızca test içindir; uygulama gövdeyi her zaman gzip'leyip `gz=1` gönderecek.
+`gz=0` is for testing only; the app always gzips the body and sends `gz=1`.
 
-## 5. Hata ayıklama
+## 5. Debugging
 
-Apps Script sol menüsünde **Yürütmeler** — her isteğin ne zaman geldiği, ne kadar
-sürdüğü ve `console.warn` çıktıları orada.
+In the Apps Script left menu, **Executions** shows when each request arrived, how
+long it took and any `console.warn` output.
 
 ---
 
-## Protokol özeti
+## Protocol summary
 
-**Yazma — araçtaki uygulama.** `POST <URL>?k=&name=&bytes=&gz=1&newest=`
+**Write: the car app.** `POST <URL>?k=&name=&bytes=&gz=1&newest=`
 
-| Parametre | Anlamı |
+| Parameter | Meaning |
 |---|---|
-| `k` | paylaşılan anahtar |
-| `name` | `calib.csv`, `calib-prev.csv`, `trips.json`, `records.json` — başkası reddedilir |
-| `bytes` | **açılmış** içeriğin bayt sayısı; script bununla doğrular |
-| `gz` | `1` = gövde gzip'li (varsayılan), `0` = düz |
-| `newest` | içeriğin en yeni satırının zamanı (epoch ms), günlüğe yazılır |
+| `k` | the write key |
+| `name` | `calib.csv`, `calib-prev.csv`, `trips.json`, `records.json`; anything else is rejected |
+| `bytes` | byte count of the **uncompressed** content; the script checks it |
+| `gz` | `1` = body is gzipped (default), `0` = plain |
+| `newest` | time of the newest line in the content (epoch ms), written to the log |
 
-Gövde: **base64**. Ham ikili gönderilemez — Apps Script `e.postData.contents`'i
-String olarak veriyor ve ikili veri charset dönüşümünde bozuluyor. Sıralama:
-`dosya → gzip → base64 → POST`.
+Body: **base64**. Raw binary cannot be sent: Apps Script hands over
+`e.postData.contents` as a String, and binary data gets corrupted by the charset
+conversion. Order: `file → gzip → base64 → POST`.
 
-**Yanıt:** her zaman JSON.
+**Response:** always JSON.
 
 ```json
 {"ok":true,"name":"trips.json","bytes":48213,"id":"...","url":"..."}
 {"ok":false,"hata":"boyut tutmadi: beklenen 48213, gelen 12044"}
 ```
 
-**Okuma — EX30 Trip Viewer.** `GET <URL>?k=<OKUMA>&file=trips.json`
+**Read: EX30 Trip Viewer.** `GET <URL>?k=<READ-KEY>&file=trips.json`
 
 ```json
 {"ok":true,"name":"trips.json","bytes":48213,"gz":true,"guncellendi":"...","data":"H4sIA..."}
 ```
 
-`data` = base64(gzip(içerik)); `bytes` **açılmış** boyut. İstemci açtıktan sonra
-boyutu karşılaştırıyor, tutmazsa yarım inmiş sayıp reddediyor. `file` olmadan
-çağrılırsa klasör listesi döner. Okunabilen adlar: `ALLOWED` listesindeki dört
-dosya + `yukleme-gunlugu.csv`.
+`data` = base64(gzip(content)); `bytes` is the **uncompressed** size. The client
+decompresses, compares the size and rejects a partial download. Without `file`,
+the folder listing is returned. Readable names: the four files in `ALLOWED` plus
+`yukleme-gunlugu.csv`.
 
-İstemci için iki kural:
+Turkish field names in the responses:
 
-1. **Başarıyı HTTP durum kodundan anlama.** Apps Script durum kodu döndüremiyor;
-   hata da 200 ile geliyor. Ölçüt gövdedeki `ok` alanı.
-2. **302'yi takip et.** `/exec` isteği `doPost`'u çalıştırıyor, sonucu ise
-   `script.googleusercontent.com` üzerinden 302 ile veriyor. Yönlendirme takip
-   edilmezse gövde boş gelir ve bu sessizce "başarılı" sanılır. `HttpURLConnection`
-   çoğu durumda kendisi takip ediyor, ama boş gövdeyi başarı sayma — `ok` alanını
-   bulamadıysan hata ver.
+| Field | Meaning |
+|---|---|
+| `hata` | error message (only when `ok` is `false`) |
+| `klasor` | folder name |
+| `dosyalar` | list of files |
+| `guncellendi` | last modified time |
 
-## Güvenlik sınırı
+Common error messages: `yetkisiz` = unauthorised (wrong key),
+`yapilandirilmadi / not configured` = placeholders not replaced,
+`izin verilmeyen dosya adi` = file name not allowed,
+`boyut tutmadi` = size mismatch, `dosya yok` = file not found.
 
-URL + **yazma** anahtarı AAB'nin içinde gömülü gidiyor; APK'yı açan biri bu
-klasöre yazabilir. Riski sınırlayan üç şey `Kod.gs`'te:
+Two rules for clients:
 
-- Klasör kimliği uygulamada değil script'te
-- Yalnızca dört sabit dosya adı yazılabiliyor
-- Okuma ayrı bir anahtar istiyor; yazma anahtarıyla içerik indirilemiyor
+1. **Do not judge success by the HTTP status code.** Apps Script cannot return
+   status codes; errors also arrive as 200. Check the `ok` field in the body.
+2. **Follow the 302.** The `/exec` request runs `doPost`, but the result is
+   delivered through a 302 redirect to `script.googleusercontent.com`. If the
+   redirect is not followed the body is empty, which is easily mistaken for
+   success. `HttpURLConnection` usually follows it, but never treat an empty body
+   as success: if there is no `ok` field, report an error.
 
-Okuma anahtarı hiçbir pakete gömülmüyor, yalnızca Viewer'ın
-`%LOCALAPPDATA%\EX30TripViewer\drive.json` dosyasında duruyor.
+## Security boundary
 
-Bu klasörü başka hiçbir şey için kullanma.
+The URL and the **write** key are embedded in the AAB; anyone who opens the APK
+can write to this folder. Three things in `Kod.gs` limit the risk:
+
+- The folder ID is in the script, not in the app
+- Only four fixed file names can be written
+- Reading requires a separate key; the write key cannot download content
+
+The read key is never embedded in any package; it is stored only in the Viewer's
+`%LOCALAPPDATA%\EX30TripViewer\drive.json`.
+
+Do not use this folder for anything else.

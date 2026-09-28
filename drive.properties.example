@@ -2,7 +2,7 @@
 # >>> ISTEGE BAGLI. BU DOSYAYI "drive.properties" ADIYLA KOPYALAYIN VE KENDI DEGERLERINIZI GIRIN.
 #
 # Enables the "Export to Drive" button. Setup steps: drive-sync/README.md
-# "Drive'a aktar" dugmesini etkinlestirir. Kurulum adimlari: drive-sync/README.md
+# "Drive'a aktar" dugmesini etkinlestirir. Kurulum adimlari: drive-sync/README.tr.md
 #
 # drive.properties is in .gitignore - NEVER commit it.
 # drive.properties .gitignore icinde - ASLA depoya eklemeyin.

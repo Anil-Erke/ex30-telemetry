@@ -62,7 +62,7 @@ AAOS emülatöründe, debug derlemesinin sentetik demo verisiyle alındı.</sub>
 - **Dışa aktar:** kayıtları araçta `İndirilenler/EX30YolAnalizi/` altına kopyalar
 - **Drive'a aktar (isteğe bağlı):** kayıtları, sizin kurduğunuz küçük bir Apps
   Script üzerinden **kendi** Google Drive klasörünüze gönderir
-  ([drive-sync/](drive-sync/README.md)). Geliştiriciye ait bir sunucu yoktur.
+  ([drive-sync/](drive-sync/README.tr.md)). Geliştiriciye ait bir sunucu yoktur.
 - Masaüstü tamamlayıcısı **EX30 Trip Viewer**, dışa aktarılan `trips.json`
   dosyasını Windows'ta grafiklerle gösterir.
 
