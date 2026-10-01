@@ -85,10 +85,9 @@ AAOS emulator with the debug build's synthetic demo data.</sub>
 - **Upload to Drive:** with a Google account connected, also uploads the raw logs
   (`calib.csv`, `trips.json`, `records.json`) to the root of the `EX30 Trips`
   folder
-- The companion desktop app **EX30 Trip Viewer** reads the exported `trips.json`
-  and draws charts on Windows. Note: the currently published Trip Viewer still
-  reads Drive through the legacy Apps Script endpoint
-  ([drive-sync/README.md](drive-sync/README.md)), not the protocol 3 files above.
+- The companion desktop app [EX30 Trip Viewer](https://github.com/Anil-Erke/ex30-trip-viewer) draws charts and route maps
+  on Windows. It signs in to the same Google account and downloads the trips from
+  Drive, or opens an exported `trips.json`.
 
 UI languages: **English** and **Turkish** (follows the system language).
 

@@ -86,11 +86,9 @@ emülatöründe, debug derlemesinin sentetik demo verisiyle alındı.</sub>
 - **Dışa aktar:** kayıtları araçta `İndirilenler/EX30YolAnalizi/` altına kopyalar
 - **Drive'a aktar:** Google hesabı bağlıysa ham kayıtları (`calib.csv`,
   `trips.json`, `records.json`) da `EX30 Trips` klasörünün köküne yükler
-- Masaüstü tamamlayıcısı **EX30 Trip Viewer**, dışa aktarılan `trips.json`
-  dosyasını Windows'ta grafiklerle gösterir. Not: şu an yayında olan Trip Viewer
-  Drive'ı hâlâ eski Apps Script ucu üzerinden okuyor
-  ([drive-sync/README.tr.md](drive-sync/README.tr.md)), yukarıdaki protokol 3
-  dosyalarını değil.
+- Masaüstü tamamlayıcısı [EX30 Trip Viewer](https://github.com/Anil-Erke/ex30-trip-viewer) Windows'ta grafik ve rota
+  haritası çizer. Aynı Google hesabıyla girip yolculukları Drive'dan indirir ya
+  da dışa aktarılan `trips.json` dosyasını açar.
 
 Arayüz dilleri: **Türkçe** ve **İngilizce** (sistem diline göre).
 
