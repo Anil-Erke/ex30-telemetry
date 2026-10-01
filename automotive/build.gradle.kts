@@ -14,15 +14,21 @@ val keystoreProps = Properties().apply {
     if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
 }
 
-// Drive'a aktarim ucunun adresi ve anahtari — bunlar da depoya GIRMEZ.
-// Dosya yoksa alanlar bos kalir; uygulama derlenir, ekrandaki dugme
-// "yapilandirilmadi" der (DriveUploader.isConfigured). Kurulum:
-// drive-sync/README.md
-// >>> OPTIONAL: COPY drive.properties.example TO drive.properties AND ENTER YOUR OWN APPS SCRIPT URL + WRITE KEY.
-// >>> ISTEGE BAGLI: drive.properties.example DOSYASINI drive.properties OLARAK KOPYALAYIP KENDI URL VE YAZMA ANAHTARINIZI GIRIN.
-val drivePropsFile = rootProject.file("drive.properties")
-val driveProps = Properties().apply {
-    if (drivePropsFile.exists()) drivePropsFile.inputStream().use { load(it) }
+// Google OAuth istemcisi (arac, "TVs and Limited Input devices") — depoya GIRMEZ.
+// Bu bir kullanici parolasi DEGIL: Google cihaz uygulamalarinda istemci
+// sirrini gizli saymiyor; erisim her kullanicinin kendi aracinda duran
+// token'iyla (google/GoogleAuth.kt). Dosya yoksa alanlar bos kalir, uygulama
+// derlenir ve "Google hesabi" satiri "istemci kimligi yok" der.
+//
+// 2026-09-29'a kadar burada drive.properties (Apps Script adresi + YAZMA
+// anahtari) vardi; o anahtar herkesin yolculugunu TEK bir Drive'a yazdiriyordu.
+//
+// >>> OPTIONAL: COPY oauth.properties.example TO oauth.properties AND ENTER YOUR OWN GOOGLE OAUTH CLIENT.
+// >>> ISTEGE BAGLI: oauth.properties.example DOSYASINI oauth.properties OLARAK KOPYALAYIP KENDI GOOGLE OAUTH ISTEMCINIZI GIRIN.
+// Kurulum: README.md -> "Google Drive sync".
+val oauthPropsFile = rootProject.file("oauth.properties")
+val oauthProps = Properties().apply {
+    if (oauthPropsFile.exists()) oauthPropsFile.inputStream().use { load(it) }
 }
 
 android {
@@ -37,11 +43,11 @@ android {
         targetSdk = 35
         // Play'de basarisiz bir yukleme denemesi bile surum kodunu kalici tuketir;
         // her yeni yukleme icin artir.
-        versionCode = 11
-        versionName = "0.7.2"
+        versionCode = 14
+        versionName = "0.8.2"
 
-        buildConfigField("String", "DRIVE_URL", "\"${driveProps.getProperty("driveUrl", "")}\"")
-        buildConfigField("String", "DRIVE_SECRET", "\"${driveProps.getProperty("driveSecret", "")}\"")
+        buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${oauthProps.getProperty("carClientId", "")}\"")
+        buildConfigField("String", "GOOGLE_CLIENT_SECRET", "\"${oauthProps.getProperty("carClientSecret", "")}\"")
     }
 
     signingConfigs {

@@ -15,6 +15,7 @@ verilerini gösterir.
 <p>
   <img src="screenshots/tr-live.png" width="270" alt="Canlı ekran, açık tema">
   <img src="screenshots/tr-live-dark.png" width="270" alt="Canlı ekran, koyu tema">
+  <img src="screenshots/tr-drive-offer.png" width="270" alt="Google Drive'a yedekleme önerisi">
 </p>
 <p>
   <img src="screenshots/tr-trips.png" width="270" alt="Yolculuk geçmişi">
@@ -22,8 +23,9 @@ verilerini gösterir.
   <img src="screenshots/tr-vehicle-data.png" width="270" alt="Araç verileri / tanılama">
 </p>
 
-<sub>Canlı ekran (açık ve koyu tema), yolculuk geçmişi, rekorlar ve araç verileri.
-AAOS emülatöründe, debug derlemesinin sentetik demo verisiyle alındı.</sub>
+<sub>Canlı ekran (açık ve koyu tema), ilk açılıştaki Google Drive yedekleme
+önerisi, yolculuk geçmişi, rekorlar ve araç verileri / ayarlar ekranı. AAOS
+emülatöründe, debug derlemesinin sentetik demo verisiyle alındı.</sub>
 
 ## Özellikler
 
@@ -50,9 +52,31 @@ AAOS emülatöründe, debug derlemesinin sentetik demo verisiyle alındı.</sub>
   ve 100-0 km/h fren; örnekler arası interpolasyonla
 - İstatistikler: toplamlar, ortalama tüketim, dış sıcaklık bandına göre tüketim
 
-**Araç verisi / tanılama**
+**Arka planda kayıt**
 
-- Her araç sinyalini, ölçülen örnekleme hızını ve çözünürlüğünü gösteren ekran
+- **Otomatik başlatma:** konum iznine "her zaman" verilirse araç çalıştığı anda,
+  uygulamayı açmaya gerek kalmadan yolculuk kaydedilir (bildirimli ön plan
+  servisi; araç uykudan uyanınca ya da uygulama güncellenince yeniden başlar)
+- **GPS izi:** her yolculuğun güzergâhı yaklaşık 1 Hz ile araçta saklanır (konum,
+  GPS irtifası, hız, güç, şarj yüzdesi)
+
+**Google Drive eşitleme (isteğe bağlı)**
+
+- Araçta **kendi** Google hesabınızı bağlarsınız: araç bir kod gösterir, siz
+  telefonunuzda `google.com/device` adresinde onaylarsınız
+- Her sürüşten sonra yolculuk özeti ve GPS izi Drive'ınızdaki `EX30 Trips`
+  klasörüne kendiliğinden yüklenir. Ağ yokken bekleyen yolculuklar sonra gider;
+  ilk bağlantıda araçtaki yolculuk geçmişi de yüklenir.
+- Uygulama yalnızca `drive.file` iznini alır: yalnızca kendi oluşturduğu
+  dosyaları görür, Drive'ınızın geri kalanını göremez. Geliştiriciye ait bir
+  sunucu yoktur.
+- Dosya düzeni ve biçimleri: [drive-sync/PROTOKOL.md](drive-sync/PROTOKOL.md)
+
+**Araç verileri / ayarlar**
+
+- Ayarlar ve tanılama ekranı: Google hesabı, yükleme kuyruğu, otomatik başlatma,
+  GPS izi durumu, ardından her araç sinyali, ölçülen örnekleme hızı ve
+  çözünürlüğüyle
 - **Property sondası:** aracın üçüncü parti uygulamalara gerçekte hangi verileri
   verdiğini listeler (Android 15 / araç yazılımı 2.1.2 birkaç yenisini açtı)
 - Kendi analiziniz için ham ölçüm günlüğü (`calib.csv`)
@@ -60,22 +84,30 @@ AAOS emülatöründe, debug derlemesinin sentetik demo verisiyle alındı.</sub>
 **Dışa aktarma**
 
 - **Dışa aktar:** kayıtları araçta `İndirilenler/EX30YolAnalizi/` altına kopyalar
-- **Drive'a aktar (isteğe bağlı):** kayıtları, sizin kurduğunuz küçük bir Apps
-  Script üzerinden **kendi** Google Drive klasörünüze gönderir
-  ([drive-sync/](drive-sync/README.tr.md)). Geliştiriciye ait bir sunucu yoktur.
+- **Drive'a aktar:** Google hesabı bağlıysa ham kayıtları (`calib.csv`,
+  `trips.json`, `records.json`) da `EX30 Trips` klasörünün köküne yükler
 - Masaüstü tamamlayıcısı **EX30 Trip Viewer**, dışa aktarılan `trips.json`
-  dosyasını Windows'ta grafiklerle gösterir.
+  dosyasını Windows'ta grafiklerle gösterir. Not: şu an yayında olan Trip Viewer
+  Drive'ı hâlâ eski Apps Script ucu üzerinden okuyor
+  ([drive-sync/README.tr.md](drive-sync/README.tr.md)), yukarıdaki protokol 3
+  dosyalarını değil.
 
 Arayüz dilleri: **Türkçe** ve **İngilizce** (sistem diline göre).
 
 ## Gizlilik
 
-- Bütün veri araçta, uygulamanın özel alanında kalır.
-- **Siz** *Dışa aktar* ya da *Drive'a aktar*'a basmadıkça hiçbir yere bir şey
-  gönderilmez. Drive aktarımı yalnızca sizin yapılandırdığınız adrese gider.
+- **Uygulama konum kaydeder.** Mesafe ve irtifa GPS'ten gelir; her yolculuğun
+  güzergâhı (GPS izi) araçta, uygulamanın özel alanında saklanır. EX30'un
+  odometresi ve dahili GPS sensörleri üçüncü parti uygulamalara açık değildir.
+- **Otomatik başlatma** açıksa (konum "her zaman"), araç her sürüldüğünde kayıt
+  arka planda da yapılır; çalışırken bir bildirim görünür. Bu izin yoksa kayıt
+  yalnızca uygulama açıkken yapılır.
+- **Google hesabı bağlamadıkça araçtan hiçbir şey çıkmaz.** Bağlarsanız
+  yolculuk özetleri ve GPS izleri `drive.file` izniyle **yalnızca o hesabın
+  kendi Google Drive'ına** gider. Bağlantıyı kesmek yüklemeyi durdurur ve
+  token'ı Google'da da iptal eder; Drive'daki dosyalar siz silene kadar kalır.
+- Google yenileme token'ı Android Keystore ile şifreli saklanır.
 - Reklam, analitik, çökme raporlama veya üçüncü parti SDK yoktur.
-- Konum, mesafe ve irtifayı hesaplamak için kullanılır. EX30'un odometresi ve
-  dahili GPS sensörleri üçüncü parti uygulamalara açık değildir.
 
 ## Derlemeden önce doldurmanız gerekenler
 
@@ -86,15 +118,58 @@ yer **BÜYÜK HARFLİ** bir yorumla işaretlidir.
 |---|---|---|
 | Paket adı (`applicationId`) | `automotive/build.gradle.kts` | Kendi release derlemeniz için **evet**. Google Play `com.example.*` kabul etmez |
 | İmza anahtarı | `keystore.properties.example` → `keystore.properties` olarak kopyalayın | Yalnızca imzalı release için |
-| Drive aktarım adresi | `drive.properties.example` → `drive.properties` olarak kopyalayın | İsteğe bağlı |
-| Drive klasör kimliği + iki anahtar | `drive-sync/Kod.gs` (`PASTE-…` yer tutucuları) | İsteğe bağlı |
+| Google OAuth istemcisi | `oauth.properties.example` → `oauth.properties` olarak kopyalayın | İsteğe bağlı, Google Drive eşitleme için ([kurulum](#google-drive-eşitleme-isteğe-bağlı)) |
+| Eski Apps Script ucu | `drive-sync/Kod.gs` (`PASTE-…` yer tutucuları) | Yalnızca eski Trip Viewer sürümleri için ([eski düzen](drive-sync/README.tr.md)) |
 
-`keystore.properties`, `drive.properties`, `*.jks`, `*.aab` ve `*.apk`
-`.gitignore` içindedir. **Bunları asla depoya eklemeyin.**
+`keystore.properties`, `oauth.properties`, `client_secret_*.json`, `*.jks`,
+`*.aab` ve `*.apk` `.gitignore` içindedir. **Bunları asla depoya eklemeyin.**
+
+`oauth.properties` olmadan da uygulama derlenir ve normal çalışır; *Google
+hesabı* satırı yalnızca istemci kimliğinin eksik olduğunu söyler.
+
+## Google Drive eşitleme (isteğe bağlı)
+
+Araçtaki uygulama Google'a **cihaz akışıyla** giriş yapar; bunun için kendi
+Google Cloud OAuth istemcinizi açmanız gerekir. Ücretsizdir, başka kimsenin
+verisiyle ilgisi yoktur.
+
+1. [console.cloud.google.com](https://console.cloud.google.com) → yeni proje
+   oluşturun (ör. `EX30 Telemetry`).
+2. **APIs & Services → Library → Google Drive API → Enable.**
+3. **Google Auth Platform → Branding / Audience:** izin ekranını *External*
+   olarak kurun, sonra **yayınlayın ("In production")**. *Testing* durumunda
+   yenileme token'ları 7 günde geçersiz olur. `drive.file` hassas bir izin
+   olmadığı için Google incelemesi gerekmez.
+4. **Data access:** `.../auth/drive.file`, `openid` ve `email` izinlerini ekleyin.
+5. **Clients → Create client → TVs and Limited Input devices.** İstemci kimliğini
+   ve sırrını `oauth.properties` içine `carClientId` ve `carClientSecret` olarak
+   yazın.
+6. İsteğe bağlı: **aynı projede** *Desktop app* türünde ikinci bir istemci açın
+   (`desktopClientId`, `desktopClientSecret`). Bunu
+   `drive-sync/oauth-dogrulama.py`, `drive-sync/drive-denetle.py` ve protokol 3'ü
+   okuyan Trip Viewer sürümleri kullanır. Aynı projedeki istemciler birbirinin
+   dosyalarını görür; başka bir projedeki istemci göremez.
+7. Derleyip kurun. Araçta: **Ayarlar → Google hesabı** → telefonunuzda
+   `google.com/device` adresini açıp kodu girin ve izin ekranında **Google Drive
+   kutusunu da işaretleyin**. İşaretlenmezse hiçbir şey yüklenemez; uygulama
+   eksik izni bildirir.
+
+Cihaz ve masaüstü uygulamalarında Google istemci sırrını gizli saymaz; tek başına
+kimsenin verisine erişim vermez. Yine de `oauth.properties` dosyasını depoya
+eklemeyin.
+
+Drive'a neyin gittiğini bilgisayardan kontrol etmek için (masaüstü istemcisi
+gerekir):
+
+```powershell
+py -3 drive-sync/drive-denetle.py
+```
 
 ## Derleme
 
-Gereksinimler: Android Studio (JDK 17), Android SDK 35.
+Gereksinimler: Android Studio (JDK 17), Android SDK 35. Windows'ta proje
+yolunda Türkçe karakter (ör. `ı`, `ü`) olmamalı; Android Gradle eklentisi böyle
+bir yolda derlemeyi reddediyor.
 
 ```powershell
 # Windows
@@ -118,6 +193,7 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
   PKG=com.example.ex30telemetry   # ya da kendi applicationId'niz
   adb install -r -t automotive/build/outputs/apk/debug/automotive-debug.apk
   adb shell pm grant --user 10 $PKG android.permission.ACCESS_FINE_LOCATION
+  adb shell pm grant --user 10 $PKG android.permission.ACCESS_BACKGROUND_LOCATION   # otomatik başlatma
   adb shell am start --user 10 -n "$PKG/androidx.car.app.activity.CarAppActivity"
   ```
 
@@ -143,14 +219,17 @@ adb shell am broadcast --user 10 -p $PKG -a $PKG.DEBUG --es cmd screen --es to t
 
 ```
 automotive/src/main/java/.../
+  JourneyService.kt, BootReceiver.kt   arka plan kayıt servisi + otomatik başlatma
   car/      araç property akışları, sonda, tekerlek odometresi
-  trip/     yolculuk durum makinesi, biriktirici, rekorlar, menzil denetimi, kayıt
+  trip/     yolculuk durum makinesi, biriktirici, GPS izi, rekorlar, menzil denetimi, kayıt
   render/   canlı ekran çizimi, tema ve pencere ayarları
-  screen/   Car App Library ekranları (yolculuklar, ayrıntı, istatistik, rekorlar, tanılama)
-  calib/    ölçüm günlüğü, dışa aktarma, Drive'a yükleme
-  loc/      konum + ön plan servisi
+  screen/   Car App Library ekranları (yolculuklar, ayrıntı, istatistik, rekorlar, ayarlar, Google girişi)
+  google/   Google cihaz akışı girişi, şifreli token saklama, Drive REST istemcisi
+  sync/     yükleme kuyruğu (giden kutusu) ve yolculuk gönderici
+  calib/    ölçüm günlüğü, dışa aktarma, elle Drive'a yükleme
+  loc/      konum
   debug/    yalnızca debug kancaları ve demo verisi
-drive-sync/ isteğe bağlı Google Apps Script ucu (Kod.gs)
+drive-sync/ Drive protokolü (PROTOKOL.md), yardımcı betikler, eski Apps Script ucu (Kod.gs)
 play-assets/ simge ve tanıtım görseli
 screenshots/ README görselleri (en-*, tr-*)
 ```

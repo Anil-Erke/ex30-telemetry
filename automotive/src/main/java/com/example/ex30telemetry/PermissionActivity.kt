@@ -42,6 +42,17 @@ import android.util.Log
  * ## `distractionOptimized` BILEREK yok
  *
  * Izin diyalogu surus sirasinda acilmamali; sistem engellesin (§4.2).
+ *
+ * ## Iki asamali istek — arka plan konumu AYRI (2026-09-28)
+ *
+ * Otomatik baslatma icin `ACCESS_BACKGROUND_LOCATION` gerekiyor ve Android 11+
+ * onu digerleriyle AYNI istekte vermiyor. Sira: once normal izinler, sonuc
+ * gelince (on plan konumu verildiyse) arka plan konumu tek basina. Android 11+
+ * bu ikinci istekte diyalog yerine uygulamanin konum izni sayfasini aciyor;
+ * surucu orada "Her zaman izin ver"i seciyor.
+ *
+ * Normal izinler zaten tamsa aktivite dogrudan ikinci asamaya geciyor — Olcum
+ * ekranindaki "Otomatik başlatma" satiri bu yolu kullaniyor.
  */
 class PermissionActivity : Activity() {
 
@@ -57,7 +68,7 @@ class PermissionActivity : Activity() {
         // bir durum olarak gosteriliyor.
         val missing = Permissions.requestableMissing(this)
         if (missing.isEmpty()) {
-            finish()
+            requestBackgroundOrFinish()
             return
         }
 
@@ -75,13 +86,35 @@ class PermissionActivity : Activity() {
         grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Sonuc ne olursa olsun kapaniyoruz: kismi izin de kabul, cagiran ekran
+        // Sonuc ne olursa olsun ilerliyoruz: kismi izin de kabul, cagiran ekran
         // durumu kendi yeniden okuyor (PermissionScreen.onResume).
-        finish()
+        if (requestCode == REQUEST_CODE) requestBackgroundOrFinish() else finish()
+    }
+
+    /**
+     * Ikinci asama. On plan konumu yoksa arka plan konumu istenemez (sistem
+     * sessizce reddeder), o durumda dogrudan kapaniyoruz.
+     */
+    private fun requestBackgroundOrFinish() {
+        val bg = Permissions.BACKGROUND_LOCATION
+        if (!Permissions.hasLocation(this) ||
+            Permissions.hasBackgroundLocation(this) ||
+            !Permissions.definedOnPlatform(this, bg)
+        ) {
+            finish()
+            return
+        }
+        Log.i(TAG, "arka plan konumu isteniyor")
+        runCatching { requestPermissions(arrayOf(bg), REQUEST_CODE_BACKGROUND) }
+            .onFailure {
+                Log.w(TAG, "arka plan konum isteği açılamadı", it)
+                finish()
+            }
     }
 
     companion object {
         private const val TAG = "JourneyPerm"
         private const val REQUEST_CODE = 1001
+        private const val REQUEST_CODE_BACKGROUND = 1002
     }
 }

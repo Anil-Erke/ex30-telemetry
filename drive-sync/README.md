@@ -2,6 +2,16 @@
 
 **English** · [Türkçe](README.tr.md)
 
+> **Legacy.** Since version 0.8 the car app no longer writes to this Apps Script
+> endpoint. Each user connects their own Google account in the car and trips go
+> straight to their own Drive (protocol 3, [`PROTOCOL.md`](PROTOCOL.md); setup in
+> the main [README](../README.md#google-drive-sync-optional)). This endpoint is only
+> needed by EX30 Trip Viewer versions that still read `trips.json` through it.
+> **Do not set it up for a new installation.**
+>
+> `Kod.gs` also contains code for an unreleased intermediate protocol (version 2,
+> trip files under `yolculuklar/`); no released app version uses it.
+
 `Kod.gs` is a Google Apps Script web app that writes the log files sent by the
 car app into a folder in **your own** Google Drive (for example **My EX30
 Trips**). This page explains how to deploy it. The setup is **optional**:

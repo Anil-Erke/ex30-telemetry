@@ -100,7 +100,7 @@ class TripStore(private val filesDir: File) {
         runCatching {
             val arr = JSONArray()
             bests.values.forEach { arr.put(it.toJson()) }
-            recordsFile.writeText(arr.toString())
+            DurableFile.writeText(recordsFile, arr.toString())
         }.onFailure { Log.w(TAG, "records.json yazılamadı", it) }
     }
 
@@ -108,7 +108,7 @@ class TripStore(private val filesDir: File) {
 
     /** AKTIF yolculugun anlik durumunu yazar (1 Hz). */
     fun saveLive(json: JSONObject) {
-        runCatching { liveFile.writeText(json.toString()) }
+        runCatching { DurableFile.writeText(liveFile, json.toString()) }
             .onFailure { Log.w(TAG, "live.json yazılamadı", it) }
     }
 
@@ -143,7 +143,7 @@ class TripStore(private val filesDir: File) {
         runCatching {
             val arr = JSONArray()
             cache.forEach { arr.put(it.toJson()) }
-            tripsFile.writeText(arr.toString())
+            DurableFile.writeText(tripsFile, arr.toString())
         }.onFailure { Log.w(TAG, "trips.json yazılamadı", it) }
     }
 

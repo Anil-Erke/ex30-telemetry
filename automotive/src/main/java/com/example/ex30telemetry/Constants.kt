@@ -26,8 +26,16 @@ object Constants {
     /** Bu hizin uzerine cikinca yolculuk baslar (km/h). */
     const val TRIP_START_SPEED_KMH = 3.0
 
-    /** KAPANIYOR durumunda tekrar hareket beklenen sure (sn). Kirmizi isik icin. */
-    const val CLOSING_GRACE_SEC = 60L
+    /**
+     * KAPANIYOR durumunda tekrar hareket beklenen sure (sn).
+     *
+     * 60'tan 10'a indirildi (2026-09-28, kullanici istegi): yolculuk bittikten
+     * sonra kaydin hemen yazilmasi isteniyor — araç kilitlenip head unit
+     * uykuya gecmeden. Kirmizi isik bundan etkilenmiyor: KAPANIYOR'a ancak
+     * vites P + park freni ya da kontak kapali iken giriliyor, isikta
+     * beklerken ikisi de olmuyor.
+     */
+    const val CLOSING_GRACE_SEC = 10L
 
     /** Bu mesafenin altindaki yolculuk kaydedilmez (m) — park manevrasi gurultusu. */
     const val MIN_TRIP_DISTANCE_M = 500.0
@@ -88,6 +96,12 @@ object Constants {
 
     /** TripStore'un tuttugu azami yolculuk sayisi; en eski dusurulur. */
     const val MAX_TRIPS = 300
+
+    /**
+     * Araçta tutulan azami GPS izi dosyasi; en eskisi silinir. Yolculuk
+     * sayisiyla ayni: izi olup ozeti silinmis bir yolculuk anlamsiz.
+     */
+    const val MAX_TRACKS = MAX_TRIPS
 
     /**
      * Trip kaydinin sema surumu. Sema degisirse artir, eski kayitlari silme.

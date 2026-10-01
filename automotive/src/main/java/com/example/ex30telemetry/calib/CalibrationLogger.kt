@@ -1,5 +1,6 @@
 package com.example.ex30telemetry.calib
 
+import android.content.Context
 import android.os.SystemClock
 import android.util.Log
 import androidx.car.app.CarContext
@@ -29,7 +30,15 @@ import kotlin.math.sqrt
  * araçtan `adb pull` ile almak da mumkun degil — olcumun cikis yolu
  * [CalibrationScreen], dosya yalnizca ikincil kayit.
  */
-class CalibrationLogger(private val carContext: CarContext) {
+class CalibrationLogger(context: Context) {
+
+    /**
+     * Uygulama baglami. Gunluk artik oturumdan bagimsiz: arac acilisinda
+     * baslayan servis icinde yasiyor (bkz. JourneyService). CarContext yalnizca
+     * SoC tanilamasi icin [attachCarContext] ile sonradan takiliyor.
+     */
+    private val appContext: Context = context.applicationContext
+    private var carContext: CarContext? = null
 
     companion object {
         private const val TAG = "JourneyCalib"
@@ -85,7 +94,7 @@ class CalibrationLogger(private val carContext: CarContext) {
         }
     }
 
-    private val stream = CarPropertyStream(carContext)
+    private val stream = CarPropertyStream(appContext)
     private val stats = LinkedHashMap<String, PropStats>()
     private var csv: File? = null
     private var csvWriter: BufferedWriter? = null
@@ -123,7 +132,7 @@ class CalibrationLogger(private val carContext: CarContext) {
         if (running) return
         running = true
 
-        csv = File(carContext.filesDir, CSV_NAME).also { openCsv(it) }
+        csv = File(appContext.filesDir, CSV_NAME).also { openCsv(it) }
 
         if (!stream.start()) {
             Log.w(TAG, "Car property akışı açılamadı: ${stream.lastError}")
@@ -136,8 +145,6 @@ class CalibrationLogger(private val carContext: CarContext) {
                 Log.i(TAG, "${spec.name}: ${st.subscription.debugLabel}")
             }
         }
-
-        startCarInfoEnergy()
     }
 
     /** Tamponda bekleyen satirlari diske yazar (disa aktarim oncesi). */
@@ -154,13 +161,30 @@ class CalibrationLogger(private val carContext: CarContext) {
         stream.stop()
         runCatching { csvWriter?.flush(); csvWriter?.close() }
         csvWriter = null
+        detachCarContext()
+    }
+
+    /** Oturum acildi: Car App Library'nin SoC tanilamasini tak. */
+    @Synchronized
+    fun attachCarContext(ctx: CarContext) {
+        if (carContext === ctx) return
+        detachCarContext()
+        carContext = ctx
+        startCarInfoEnergy(ctx)
+    }
+
+    /** Oturum kapaniyor; CarContext onunla oluyor, dinleyici birakilmali. */
+    @Synchronized
+    fun detachCarContext() {
+        val ctx = carContext ?: return
         energyListener?.let { l ->
             runCatching {
-                carContext.getCarService(CarHardwareManager::class.java)
+                ctx.getCarService(CarHardwareManager::class.java)
                     .carInfo.removeEnergyLevelListener(l)
             }
         }
         energyListener = null
+        carContext = null
     }
 
     // --- Olay isleme ---
@@ -249,9 +273,9 @@ class CalibrationLogger(private val carContext: CarContext) {
         lastPowerNanos = tNanos
     }
 
-    private fun startCarInfoEnergy() {
+    private fun startCarInfoEnergy(ctx: CarContext) {
         runCatching {
-            val info = carContext.getCarService(CarHardwareManager::class.java).carInfo
+            val info = ctx.getCarService(CarHardwareManager::class.java).carInfo
             val l = OnCarDataAvailableListener<EnergyLevel> { e ->
                 val pct = e.batteryPercent
                 if (pct.status == androidx.car.app.hardware.common.CarValue.STATUS_SUCCESS) {
@@ -272,8 +296,7 @@ class CalibrationLogger(private val carContext: CarContext) {
                 }
             }
             energyListener = l
-            carContext.getCarService(CarHardwareManager::class.java)
-                .carInfo.addEnergyLevelListener(ContextCompat.getMainExecutor(carContext), l)
+            info.addEnergyLevelListener(ContextCompat.getMainExecutor(ctx), l)
         }.onFailure { Log.w(TAG, "CarInfo enerji dinleyicisi kurulamadı", it) }
     }
 
@@ -413,7 +436,7 @@ class CalibrationLogger(private val carContext: CarContext) {
 
     @Synchronized
     fun report(): Report {
-        val rows = stats.values.map { it.toRow(carContext) }
+        val rows = stats.values.map { it.toRow(appContext) }
 
         val deltaWh = run {
             val a = batteryLevelFirstWh

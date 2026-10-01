@@ -19,7 +19,7 @@ enum class TripState { BEKLEME, HAZIR, AKTİF, KAPANIYOR }
  * BEKLEME   --(kontak AÇIK)-------------------------->  HAZIR
  * HAZIR     --(vites P dışı VEYA hız > 3 km/h)------->  AKTİF      [yolculuk başlar]
  * AKTİF     --(vites P VE park freni VEYA kontak KAPALI)-> KAPANIYOR
- * KAPANIYOR --(60 sn içinde tekrar hareket yok)------>  BEKLEME    [yolculuk yazılır]
+ * KAPANIYOR --(10 sn içinde tekrar hareket yok)------>  BEKLEME    [yolculuk yazılır]
  * KAPANIYOR --(tekrar hareket)----------------------->  AKTİF
  * ```
  *
@@ -31,7 +31,16 @@ enum class TripState { BEKLEME, HAZIR, AKTİF, KAPANIYOR }
 class TripRecorder(
     private val hub: VehicleDataHub,
     private val store: TripStore,
+    /** Yolculugun GPS izi; ozetle ayni anahtarla (startEpoch) saklaniyor. */
+    val track: TrackRecorder,
 ) {
+    /**
+     * Bir yolculuk kalici kayda girdiginde (ozeti VE izi diskte) cagrilir —
+     * otomatik yukleme kuyruga buradan aliyor. Kurtarilan yolculuklar da dahil.
+     */
+    @Volatile
+    var onTripSaved: ((Trip) -> Unit)? = null
+
     @Volatile
     var state: TripState = TripState.BEKLEME
         private set
@@ -123,8 +132,28 @@ class TripRecorder(
     }
 
     fun onLocation(location: Location) {
-        live?.onGpsFix(SystemClock.elapsedRealtime())
-        live?.onLocation(location)
+        val acc = live ?: return
+        acc.onGpsFix(SystemClock.elapsedRealtime())
+        acc.onLocation(location)
+        // Iz, birikimden SONRA yaziliyor: dist_m bu fix'i de icersin.
+        //
+        // Her fix yaziliyor, birikimin eledigi titresim adimlari da: iz ham
+        // veri, suzme analizin isi. Durma anlarini zaten LocationTracker'in
+        // 3 m esigi seyreltiyor.
+        val s = hub.snapshot
+        track.append(
+            tMs = location.time,
+            lat = location.latitude,
+            lon = location.longitude,
+            altM = if (location.hasAltitude()) location.altitude else null,
+            hAccM = if (location.hasAccuracy()) location.accuracy.toDouble() else null,
+            vAccM = if (location.hasVerticalAccuracy()) location.verticalAccuracyMeters.toDouble() else null,
+            gpsKmh = if (location.hasSpeed()) location.speed * 3.6 else null,
+            kmh = s.speedKmh,
+            kw = s.powerKw,
+            soc = s.socPercent,
+            distM = acc.distanceM,
+        )
     }
 
     /**
@@ -272,6 +301,7 @@ class TripRecorder(
         acc.wheelStartM = s.wheelDistanceM
         acc.wheelEndM = s.wheelDistanceM
         live = acc
+        track.begin(acc.startEpoch)
         Log.i(TAG, "yolculuk başladı")
     }
 
@@ -289,10 +319,14 @@ class TripRecorder(
             )
             skipped = Skipped(acc.distanceM, acc.durationSec, System.currentTimeMillis())
             store.clearLive()
+            track.discard()
             return
         }
         val trip = acc.toTrip(System.currentTimeMillis())
         store.add(trip)
+        val trackFile = track.finish(trip.startEpoch)
+        Calibration.current()?.note("track", trackFile?.name ?: "yok", track.rows)
+        onTripSaved?.invoke(trip)
         lastSaved = trip
         skipped = null
         Log.i(TAG, "yolculuk kaydedildi: ${"%.2f".format(trip.distanceKm)} km")
@@ -306,18 +340,22 @@ class TripRecorder(
      * uygulama olduruluyor; 1 Hz'lik `live.json` bu durumda tek kanit.
      */
     private fun recoverIfNeeded() {
-        val o = store.loadLive() ?: return
+        val o = store.loadLive()
+        if (o == null) {
+            // live.json yoksa yarim iz sahipsiz kalmistir.
+            track.discard()
+            return
+        }
         store.clearLive()
-        runCatching {
+        val recovered = runCatching {
             val distanceM = o.optDouble("distanceM", 0.0)
             val startEpoch = o.optLong("startEpoch")
             val endEpoch = o.optLong("lastEpoch", startEpoch)
             val durationSec = (endEpoch - startEpoch) / 1000
             if (distanceM < Constants.MIN_TRIP_DISTANCE_M ||
                 durationSec < Constants.MIN_TRIP_DURATION_SEC
-            ) return
-            store.add(
-                Trip(
+            ) return@runCatching null
+            val trip = Trip(
                     startEpoch = startEpoch,
                     endEpoch = endEpoch,
                     durationSec = durationSec,
@@ -339,9 +377,18 @@ class TripRecorder(
                     consumptionKwh100 = o.optDoubleOrNull("consumptionKwh100"),
                     rangeBiasFactor = o.optDoubleOrNull("rangeBiasFactor"),
                 )
-            )
+            store.add(trip)
             Log.i(TAG, "yarım kalmış yolculuk kurtarıldı: ${distanceM.toInt()} m")
-        }.onFailure { Log.w(TAG, "live.json kurtarılamadı", it) }
+            trip
+        }.onFailure { Log.w(TAG, "live.json kurtarılamadı", it) }.getOrNull()
+
+        // Iz de kurtariliyor: basligindaki anahtar tutmazsa finish() kendisi atar.
+        if (recovered == null) {
+            track.discard()
+            return
+        }
+        track.finish(recovered.startEpoch)
+        onTripSaved?.invoke(recovered)
     }
 
     private fun snapshotJson(acc: TripAccumulator): JSONObject = JSONObject().apply {

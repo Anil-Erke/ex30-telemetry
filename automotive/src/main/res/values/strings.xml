@@ -49,7 +49,7 @@
     <string name="act_history">History</string>
     <string name="act_records">Records</string>
     <string name="act_new">New</string>
-    <string name="act_measure">Measure</string>
+    <string name="act_measure">Settings</string>
     <string name="act_pro">Pro</string>
     <string name="toast_new_trip">New trip started</string>
     <string name="banner_record">" — record"</string>
@@ -125,7 +125,7 @@
 
     <!-- ===== İzinler ===== -->
     <string name="perm_title">Permissions required</string>
-    <string name="perm_message">Distance and altitude are calculated from location, consumption and range from vehicle data. No data leaves the car.</string>
+    <string name="perm_message">Distance and altitude come from location, consumption from vehicle data. Data goes only to your own Google Drive, and only if you connect it.</string>
     <string name="perm_grant">Grant</string>
 
     <!-- ===== Pro ===== -->
@@ -155,69 +155,46 @@
     <string name="calib_no_data">⚠ No vehicle data</string>
 
     <string name="calib_location">Location</string>
-    <string name="calib_no_fix">no fix yet</string>
-    <string name="calib_location_sub">distance and altitude come only from here</string>
-    <string name="calib_no_altitude">no altitude</string>
+    <string name="calib_no_fix">No fix yet</string>
+    <string name="calib_location_sub">Distance and altitude come only from here</string>
+    <string name="calib_no_altitude">No altitude</string>
     <string name="calib_accuracy">· ±%1$s m</string>
     <string name="calib_fix_age">· %1$s s ago</string>
 
-    <string name="calib_speed">Speed</string>
-    <string name="calib_speed_values">display %1$s  ·  raw %2$s</string>
-    <string name="calib_speed_unreadable">display speed cannot be read</string>
 
     <string name="calib_battery">Battery</string>
-    <string name="calib_no_events">no data received</string>
-
-    <string name="calib_range">Remaining range</string>
-
     <string name="calib_power">Instant power</string>
     <string name="calib_power_draw">consumption</string>
     <string name="calib_power_regen">regen</string>
     <string name="calib_power_value">%1$s kW — %2$s</string>
-    <string name="calib_range_text">range %1$s</string>
-
-    <string name="calib_outside_temp">Outside temperature</string>
-    <string name="calib_temp_note">absorbs heat while parked; more accurate while moving</string>
-
-    <string name="calib_gear">Gear</string>
-    <string name="calib_gear_park">P — park</string>
-    <string name="calib_gear_reverse">R — reverse</string>
-    <string name="calib_gear_neutral">N — neutral</string>
-    <string name="calib_gear_drive">D — drive</string>
-    <string name="calib_gear_events">%1$d events · %2$d changes</string>
+    <string name="calib_range_text">Range %1$s</string>
 
     <string name="calib_trip">Trip — %1$s</string>
     <string name="calib_trip_values">%1$s km · %2$d min</string>
-    <string name="calib_no_open_trip">no open trip</string>
+    <string name="calib_no_open_trip">No open trip</string>
     <string name="calib_trip_bridged">%1$s%% of distance from speed instead of location</string>
-    <string name="calib_trip_from_location">distance from location</string>
-    <string name="calib_trip_starts">starts when the ignition turns on</string>
+    <string name="calib_trip_from_location">Distance from location</string>
+    <string name="calib_trip_starts">Starts when the ignition turns on</string>
 
     <string name="calib_energy_check">Energy verification</string>
-    <string name="calib_energy_values">power integral %1$s ↔ battery %2$s</string>
-    <string name="calib_energy_waiting">waiting for a battery change</string>
+    <string name="calib_energy_values">Power integral %1$s ↔ battery %2$s</string>
+    <string name="calib_energy_waiting">Waiting for a battery change</string>
 
     <string name="calib_log">Measurement log</string>
     <string name="calib_log_full">⚠ Log full — recording STOPPED</string>
     <string name="calib_log_size">%1$s / %2$d MiB%3$s</string>
     <string name="calib_log_rotations">· rotated %1$d times</string>
-    <string name="calib_log_stuck">file could not be rotated; no new lines are written</string>
-    <string name="calib_log_rotates">when full it moves to calib-prev.csv and a new one opens</string>
+    <string name="calib_log_stuck">File could not be rotated; no new lines are written</string>
+    <string name="calib_log_rotates">When full it moves to calib-prev.csv and a new one opens</string>
 
     <string name="calib_trip_skipped">⚠ Last trip was not saved</string>
     <string name="calib_skip_values">%1$s m / %2$d s — threshold %3$d m / %4$d s</string>
-    <string name="calib_skip_note">distance comes from GPS; without a fix the trip looks short</string>
+    <string name="calib_skip_note">Distance comes from GPS; without a fix the trip looks short</string>
 
-    <string name="calib_step_no_change">last %1$s · no change seen yet (%2$d events)</string>
-    <string name="calib_step_line">last %1$s · step ≥ %2$s%3$s%4$s · %5$d changes</string>
-    <string name="calib_step_min_gap">· min %1$s s</string>
-    <string name="calib_step_mean_gap">· avg %1$s s</string>
-    <string name="calib_rate_line">%1$s → measured %2$s Hz · ±%3$s ms · %4$d events%5$s</string>
-    <string name="calib_rate_invalid">· %1$d invalid</string>
 
-    <string name="calib_verdict_mw">raw value is mW</string>
-    <string name="calib_verdict_w">raw value is W</string>
-    <string name="calib_verdict_none">neither unit matched</string>
+    <string name="calib_verdict_mw">Raw value mW</string>
+    <string name="calib_verdict_w">Raw value W</string>
+    <string name="calib_verdict_none">None matched</string>
 
     <!-- ===== Araç veri akışı (ölçüm ekranında tanılama satırı olarak görünür) ===== -->
     <string name="car_sub_not_started">not started</string>
@@ -269,8 +246,8 @@
     <string name="calib_wheel">Distance · GPS vs wheels</string>
     <string name="calib_wheel_values">GPS %1$s km  ·  wheels %2$s km</string>
     <string name="calib_wheel_bias">GPS reads %1$s%% vs wheel ticks</string>
-    <string name="calib_wheel_waiting">wheel ticks not available yet</string>
-    <string name="calib_wheel_short">trip too short to compare</string>
+    <string name="calib_wheel_waiting">Wheel ticks not available yet</string>
+    <string name="calib_wheel_short">Trip too short to compare</string>
     <string name="calib_wheel_unreliable">⚠ GPS unreliable (%1$s%%) — altitude data suspect too</string>
     <string name="live_alt_gps_bad">⚠ GPS unreliable, climb understated</string>
 
@@ -278,37 +255,86 @@
     <string name="calib_bg_location">Background location</string>
     <string name="calib_bg_on">On — fixes keep coming when you switch apps</string>
     <string name="calib_bg_off">Off — Android thins out fixes in the background</string>
-    <string name="calib_bg_denied">no location permission</string>
-    <string name="calib_bg_note">altitude only comes from location; distance can fall back to vehicle speed</string>
+    <string name="calib_bg_denied">No location permission</string>
+    <string name="calib_bg_note">Altitude only comes from location; distance can fall back to vehicle speed</string>
+    <string name="calib_auto">Automatic start</string>
+    <string name="calib_auto_on">On — records when the car starts, without opening the app</string>
+    <string name="calib_auto_off">Off — tap to allow location \"all the time\"</string>
+    <string name="calib_auto_last">Last start: %1$s · %2$s</string>
+    <string name="calib_auto_last_failed">Last start FAILED: %1$s · %2$s</string>
+    <string name="calib_auto_never">Service has not started in this session</string>
+    <string name="calib_track">GPS track</string>
+    <string name="calib_track_open">Recording: %1$d points</string>
+    <string name="calib_track_idle">No open trip</string>
+    <string name="calib_track_saved">%1$d trip tracks stored in the car</string>
+    <string name="calib_sync">Automatic upload</string>
+    <string name="calib_sync_empty">Nothing waiting</string>
+    <string name="calib_sync_pending">%1$d trips waiting</string>
+    <string name="calib_sync_busy">Uploading… %1$d waiting</string>
+    <string name="calib_sync_rejected">%1$d rejected by the server</string>
+    <string name="calib_sync_last_ok">Last: %1$s · %2$d sent</string>
+    <string name="calib_sync_last_error">Last: %1$s · error: %2$s — will retry</string>
+    <string name="calib_sync_never">No upload attempt in this session yet</string>
+    <string name="google_account">Google account</string>
+    <string name="calib_sec_recording">Recording and upload</string>
+    <string name="calib_sec_trip">Trip</string>
+    <string name="calib_sec_vehicle">Vehicle data</string>
+    <string name="calib_sec_settings">Settings</string>
+    <string name="calib_sec_diagnostics">Diagnostics</string>
+    <string name="svc_reason_boot">car start</string>
+    <string name="svc_reason_update">app update</string>
+    <string name="svc_reason_app">app opened</string>
+    <string name="svc_reason_permission">permission granted</string>
+    <string name="svc_reason_restart">restarted by the system</string>
+    <string name="google_linked">%1$s — trips go to its Drive · tap to disconnect</string>
+    <string name="google_not_linked">Not connected — tap to connect</string>
+    <string name="google_not_configured">Built without a client ID (oauth.properties)</string>
+    <string name="google_link_title">Connect Google account</string>
+    <string name="google_link_step1">1 · On your phone, open</string>
+    <string name="google_link_step2">2 · Enter this code</string>
+    <string name="google_link_step3">3 · Approve with your account</string>
+    <string name="google_link_drive_box">tick the Google Drive box too — without it nothing can be uploaded</string>
+    <string name="google_link_retry">Try again</string>
+    <string name="google_link_failed">Could not connect: %1$s</string>
+    <string name="google_linked_toast">Connected: %1$s</string>
+    <string name="google_unlink_message">Disconnect %1$s? Trips stay in the car and in Drive; new ones will not be uploaded.</string>
+    <string name="google_unlink">Disconnect</string>
+    <string name="google_unlinked_toast">Google account disconnected</string>
+    <string name="google_offer_title">Back up to Google Drive?</string>
+    <string name="google_offer_message">Trips and GPS tracks can go to your own Drive after each drive. Nobody else can see them.</string>
+    <string name="google_offer_link">Connect</string>
+    <string name="google_offer_later">Not now</string>
+    <string name="google_offer_later_toast">You can connect any time: Settings → Google account</string>
 
     <!-- ===== Görünüm ayarı ===== -->
     <string name="calib_window">Window</string>
-    <string name="calib_window_sub">tap to change · charts, consumption and average speed all use it</string>
+    <string name="calib_window_sub">Tap to change · affects charts and averages</string>
+    <string name="calib_window_value">Last %1$d km</string>
 
     <string name="calib_theme">Appearance</string>
     <string name="calib_theme_auto">Automatic (follows the car)</string>
     <string name="calib_theme_dark">Always dark</string>
     <string name="calib_theme_light">Always light</string>
-    <string name="calib_theme_sub">tap to change · source: %1$s</string>
+    <string name="calib_theme_sub">Tap to change · source: %1$s</string>
     <string name="calib_theme_src_car">the car\'s night mode</string>
     <string name="calib_theme_src_host">app theme (car does not report night mode)</string>
     <string name="calib_theme_src_manual">set by hand</string>
 
     <!-- ===== Drive'a aktarma ===== -->
     <string name="calib_drive">Upload to Drive</string>
-    <string name="calib_drive_hint">uploads the records to a Google Drive folder</string>
-    <string name="calib_drive_busy">uploading…</string>
-    <string name="calib_drive_off">not configured</string>
+    <string name="calib_drive_hint">Uploads the logs to the EX30 Trips folder in your Drive</string>
+    <string name="calib_drive_busy">Uploading…</string>
+    <string name="calib_drive_off">No Google account connected</string>
     <string name="drive_busy">Uploading to Drive…</string>
     <string name="drive_ok">Drive → %1$d files%2$s</string>
     <string name="drive_partial">%1$d files uploaded, %2$d failed: %3$s</string>
     <string name="drive_failed">Upload to Drive failed: %1$s</string>
     <string name="drive_nothing">Nothing to upload</string>
     <string name="drive_unreadable">file could not be read</string>
-    <string name="drive_not_configured">Drive endpoint is not set (drive.properties)</string>
+    <string name="drive_not_configured">Connect a Google account first (top row)</string>
 
     <!-- ===== Ön plan servisi bildirimi ===== -->
     <string name="fgs_channel">Trip recording</string>
     <string name="fgs_title">Recording the trip</string>
-    <string name="fgs_text">Altitude and distance keep being measured in other apps too</string>
+    <string name="fgs_text">Trips, altitude and GPS track are recorded even when the app is closed</string>
 </resources>

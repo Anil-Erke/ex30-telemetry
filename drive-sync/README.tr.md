@@ -2,6 +2,17 @@
 
 [English](README.md) · **Türkçe**
 
+> **Eski düzen.** 0.8 sürümünden beri araçtaki uygulama bu Apps Script ucuna
+> yazmıyor. Her kullanıcı araçta kendi Google hesabını bağlıyor ve yolculuklar
+> doğrudan kendi Drive'ına gidiyor (protokol 3, [`PROTOKOL.md`](PROTOKOL.md);
+> kurulum ana [README](../README.tr.md#google-drive-eşitleme-isteğe-bağlı)
+> dosyasında). Bu uç yalnızca `trips.json`'u hâlâ buradan okuyan EX30 Trip Viewer
+> sürümleri için gerekli. **Yeni kurulumda bunu yapmayın.**
+>
+> `Kod.gs` ayrıca yayınlanmamış bir ara protokolün (sürüm 2, `yolculuklar/`
+> altındaki yolculuk dosyaları) kodunu içeriyor; yayınlanan hiçbir uygulama
+> sürümü onu kullanmıyor.
+
 `Kod.gs`, araçtaki uygulamadan gelen kayıt dosyalarını **kendi** Google Drive
 klasörünüze (örneğin **My EX30 Trips**) yazan Apps Script web uygulaması. Bu
 dosya onu yayına almanın adımları. Bu kurulum **isteğe bağlıdır**; yapılmazsa

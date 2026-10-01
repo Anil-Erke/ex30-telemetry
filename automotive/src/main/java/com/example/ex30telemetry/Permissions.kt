@@ -113,4 +113,28 @@ object Permissions {
         ALL.filterNot { granted(context, it) }
 
     fun hasLocation(context: Context): Boolean = granted(context, LOCATION)
+
+    /**
+     * "Her zaman" konum izni — yalnizca OTOMATIK BASLATMA icin (2026-09-28).
+     *
+     * [ALL]'a BILEREK girmiyor: Android 11+ bu izni digerleriyle ayni istekte
+     * vermiyor, birlikte istenirse butun istek sessizce reddediliyor. Once on
+     * plan konumu verilmeli, sonra bu ayri istenmeli (bkz. [PermissionActivity]).
+     *
+     * Zorunlu da degil: yoksa uygulama eskisi gibi calisiyor, yalnizca arac
+     * acilinca kendiliginden baslamiyor (bkz. [JourneyService]).
+     */
+    const val BACKGROUND_LOCATION = Manifest.permission.ACCESS_BACKGROUND_LOCATION
+
+    fun hasBackgroundLocation(context: Context): Boolean = granted(context, BACKGROUND_LOCATION)
+
+    /**
+     * Arac acilisinda, uygulama acilmadan servis baslatilabilir mi?
+     *
+     * Konum + arka plan konumu: konum tipli servis arka plandan ancak boyle
+     * baslar. Zorunlu araç izinleri: onlarsiz servis ayakta kalir ama hicbir
+     * yolculuk algilayamaz, bildirim de bosuna durur.
+     */
+    fun canAutoStart(context: Context): Boolean =
+        missing(context).isEmpty() && hasBackgroundLocation(context)
 }

@@ -1,0 +1,27 @@
+# >>> OPTIONAL. COPY THIS FILE TO "oauth.properties" AND FILL IN YOUR OWN VALUES.
+# >>> ISTEGE BAGLI. BU DOSYAYI "oauth.properties" ADIYLA KOPYALAYIP KENDI DEGERLERINIZI GIRIN.
+#
+# Enables "Google account" sign-in and automatic trip upload to the user's own
+# Google Drive. Setup steps: README.md -> "Google Drive sync (optional)".
+# "Google hesabi" girisini ve yolculuklarin kullanicinin kendi Drive'ina otomatik
+# yuklenmesini etkinlestirir. Kurulum: README.tr.md -> "Google Drive eşitleme".
+#
+# oauth.properties is in .gitignore - NEVER commit it, and never commit the
+# client_secret_*.json file you can download from Google Cloud.
+# oauth.properties .gitignore icinde - ASLA depoya eklemeyin; Google Cloud'dan
+# indirilen client_secret_*.json dosyasini da eklemeyin.
+#
+# If left empty, the app still builds; the "Google account" row just says the
+# client ID is missing. / Bos birakilirsa uygulama yine derlenir.
+#
+# Values: Google Cloud Console -> Google Auth Platform -> Clients.
+# No spaces after "=", no quotes. / "=" isaretinden sonra bosluk ve tirnak yok.
+
+# Client of type "TVs and Limited Input devices" (the car app)
+carClientId=YOUR-CLIENT-ID.apps.googleusercontent.com
+carClientSecret=YOUR-CLIENT-SECRET
+
+# Client of type "Desktop app" (only used by drive-sync/oauth-dogrulama.py and
+# drive-sync/drive-denetle.py, and by EX30 Trip Viewer)
+desktopClientId=YOUR-DESKTOP-CLIENT-ID.apps.googleusercontent.com
+desktopClientSecret=YOUR-DESKTOP-CLIENT-SECRET

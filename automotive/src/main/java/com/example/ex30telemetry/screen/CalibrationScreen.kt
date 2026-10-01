@@ -1,5 +1,6 @@
 package com.example.ex30telemetry.screen
 
+import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import androidx.car.app.CarContext
@@ -11,22 +12,28 @@ import androidx.car.app.model.ActionStrip
 import androidx.car.app.model.ItemList
 import androidx.car.app.model.ListTemplate
 import androidx.car.app.model.Row
+import androidx.car.app.model.SectionedItemList
 import androidx.car.app.model.Template
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.ex30telemetry.BuildConfig
 import com.example.ex30telemetry.Constants
 import com.example.ex30telemetry.JourneyData
+import com.example.ex30telemetry.JourneyService
+import com.example.ex30telemetry.PermissionActivity
 import com.example.ex30telemetry.Permissions
 import com.example.ex30telemetry.R
 import com.example.ex30telemetry.calib.Calibration
 import com.example.ex30telemetry.calib.CalibrationLogger
 import com.example.ex30telemetry.calib.DataExporter
 import com.example.ex30telemetry.calib.DriveUploader
-import com.example.ex30telemetry.car.VehicleDataHub
-import com.example.ex30telemetry.loc.JourneyLocationService
+import com.example.ex30telemetry.google.GoogleAuth
 import com.example.ex30telemetry.render.ThemeSetting
 import com.example.ex30telemetry.render.WindowSetting
+import com.example.ex30telemetry.sync.TripSync
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * Araç verileri ekrani: canli property degerleri + olcum gunlugunun durumu.
@@ -65,69 +72,48 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         handler.removeCallbacks(tick)
     }
 
+    /**
+     * Satirlar bes bolume ayriliyor (2026-09-29). Sira "ekrana neden
+     * gelinir" sorusuna gore:
+     *
+     *  1. **Kayit ve yukleme** — kurulum (Google hesabi, otomatik baslatma) ve
+     *     "yolculuklarim gidiyor mu" sorusu. Kullanicinin bu ekranda en cok
+     *     DOKUNDUGU satirlar; canli degerler zaten surus ekraninda (LiveScreen).
+     *  2. **Yolculuk** — acik yolculugun durumu ve dogrulugu.
+     *  3. **Araç verileri** — ham degerler ve olculmus ornekleme hizlari.
+     *  4. **Ayarlar**
+     *  5. **Tanilama** — sonda, gunluk dosyasi, surum.
+     *
+     * Surus sirasinda host listeyi birkac satira kirpiyor (§4d); ilk bolum
+     * hesap/yukleme durumunu gosterdigi icin kirpilmis hali de anlamli kaliyor.
+     */
     override fun onGetTemplate(): Template {
         val logger = Calibration.current()
-        val list = ItemList.Builder()
-
-        // Sonda satiri EN USTE: bu ekran zaten teshis ekrani (surus ekrani
-        // LiveScreen), dolayisiyla §4d'nin "surerken alti satir" kirpmasi
-        // burada bir olcum satirini degil en cok ihtiyac duyulan girisi one
-        // aliyor. Sonda arka thread'de calisiyor, ekrani kilitlemiyor.
-        list.addItem(
-            Row.Builder()
-                .setTitle(s(R.string.calib_probe))
-                .addText(s(R.string.calib_probe_hint))
-                .setOnClickListener { openProbe() }
-                .build()
-        )
-
-        // "Drive'a aktar" — ActionStrip'te DEGIL, satir olarak.
-        //
-        // Neden: ListTemplate'in aksiyon cubugu BASLIKLI tek aksiyona izin
-        // veriyor, o yuva da "Dışa aktar"in (asagidaki setActionStrip notu).
-        // Ikinci basliklı aksiyon eklemek host'ta cokme uretiyor, sessizce
-        // dusurmuyor. Tema ayari da ayni sebeple satir.
-        //
-        // Yukleme ARKA THREAD'de; bu satira dokunmak ekrani kilitlemiyor.
-        list.addItem(
-            Row.Builder()
-                .setTitle(s(R.string.calib_drive))
-                .addText(
-                    when {
-                        uploading -> s(R.string.calib_drive_busy)
-                        !DriveUploader.isConfigured() -> s(R.string.calib_drive_off)
-                        else -> s(R.string.calib_drive_hint)
-                    }
-                )
-                .setOnClickListener { uploadToDrive() }
-                .build()
-        )
-
-        // Surum satiri. 9 Eylul 2026'da araçta ESKI surum calisirken yeni AAB
-        // yuklenmis saniliyordu ve bunu anlamanin hicbir yolu yoktu; ekran
-        // goruntusunden geriye dogru kod okumak gerekti. Bir daha olmasin.
-        list.addItem(
-            Row.Builder()
-                .setTitle(s(R.string.calib_version))
-                .addText("${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-                .build()
-        )
-
+        val rows = LinkedHashMap<RowKey, Row>()
+        rows[RowKey.GOOGLE] = googleRow()
+        rows[RowKey.DRIVE] = driveRow()
+        rows[RowKey.PROBE] = probeRow()
+        rows[RowKey.VERSION] = versionRow()
         if (logger == null) {
-            list.addItem(
-                Row.Builder()
-                    .setTitle(s(R.string.calib_not_started))
-                    .addText(s(R.string.calib_no_car_service))
-                    .build()
-            )
+            rows[RowKey.NO_DATA] = Row.Builder()
+                .setTitle(s(R.string.calib_not_started))
+                .addText(s(R.string.calib_no_car_service))
+                .build()
         } else {
-            buildRows(logger.report()).forEach { list.addItem(it) }
+            rows.putAll(buildRows(logger.report()))
         }
 
-        return ListTemplate.Builder()
+        val template = ListTemplate.Builder()
             .setTitle(s(R.string.calib_title))
             .setHeaderAction(Action.BACK)
-            .setSingleList(list.build())
+        for ((header, keys) in SECTIONS) {
+            val items = keys.mapNotNull { rows[it] }
+            if (items.isEmpty()) continue
+            val list = ItemList.Builder().apply { items.forEach { addItem(it) } }.build()
+            template.addSectionedList(SectionedItemList.create(list, s(header)))
+        }
+
+        return template
             // DIKKAT: ListTemplate'in aksiyon cubugu BASLIKLI YALNIZCA BIR
             // aksiyona izin veriyor. Ikincisini eklemek host'ta
             // "Action list exceeded max number of 1 actions with custom titles"
@@ -148,6 +134,94 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
                     .build()
             )
             .build()
+    }
+
+    /**
+     * Google hesabi — yolculuklarin gidecegi Drive'in sahibi. Bagli degilse
+     * otomatik yukleme de "Drive'a aktar" da calismiyor. Baglama yalnizca park
+     * halinde anlamli (kod telefondan giriliyor); surus sirasinda host
+     * dokunmayi zaten kisitliyor.
+     */
+    private fun googleRow(): Row = Row.Builder()
+        .setTitle(s(R.string.google_account))
+        .addText(
+            when {
+                !GoogleAuth.isConfigured() -> s(R.string.google_not_configured)
+                GoogleAuth.isLinked(carContext) ->
+                    s(R.string.google_linked, GoogleAuth.email(carContext) ?: "?")
+                else -> s(R.string.google_not_linked)
+            }
+        )
+        .setOnClickListener { openGoogleAccount() }
+        .build()
+
+    /**
+     * "Drive'a aktar" — ActionStrip'te DEGIL, satir olarak.
+     *
+     * Neden: ListTemplate'in aksiyon cubugu BASLIKLI tek aksiyona izin
+     * veriyor, o yuva da "Dışa aktar"in (onGetTemplate'teki setActionStrip
+     * notu). Ikinci basliklı aksiyon eklemek host'ta cokme uretiyor, sessizce
+     * dusurmuyor. Tema ayari da ayni sebeple satir.
+     *
+     * Yukleme ARKA THREAD'de; bu satira dokunmak ekrani kilitlemiyor.
+     */
+    private fun driveRow(): Row = Row.Builder()
+        .setTitle(s(R.string.calib_drive))
+        .addText(
+            when {
+                uploading -> s(R.string.calib_drive_busy)
+                !DriveUploader.isReady(carContext) -> s(R.string.calib_drive_off)
+                else -> s(R.string.calib_drive_hint)
+            }
+        )
+        .setOnClickListener { uploadToDrive() }
+        .build()
+
+    /** Sonda arka thread'de calisiyor, ekrani kilitlemiyor. */
+    private fun probeRow(): Row = Row.Builder()
+        .setTitle(s(R.string.calib_probe))
+        .addText(s(R.string.calib_probe_hint))
+        .setOnClickListener { openProbe() }
+        .build()
+
+    /**
+     * Surum satiri. 9 Eylul 2026'da araçta ESKI surum calisirken yeni AAB
+     * yuklenmis saniliyordu ve bunu anlamanin hicbir yolu yoktu; ekran
+     * goruntusunden geriye dogru kod okumak gerekti. Bir daha olmasin.
+     */
+    private fun versionRow(): Row = Row.Builder()
+        .setTitle(s(R.string.calib_version))
+        .addText("${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+        .build()
+
+    /**
+     * "Her zaman" konum izni istegi. Normal izinler zaten tam oldugu icin
+     * [PermissionActivity] dogrudan arka plan asamasina geciyor.
+     * Acilamazsa nedeni ekrana basiliyor (araçta logcat yok, bkz. PermissionScreen).
+     */
+    private fun requestAutoStart() {
+        val intent = Intent(carContext, PermissionActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val r = runCatching { carContext.startActivity(intent) }
+            .recoverCatching { carContext.applicationContext.startActivity(intent) }
+        r.exceptionOrNull()?.let { e ->
+            CarToast.makeText(
+                carContext,
+                s(R.string.perm_launch_error, "${e.javaClass.simpleName}: ${e.message.orEmpty().take(90)}"),
+                CarToast.LENGTH_LONG,
+            ).show()
+        }
+    }
+
+    /** Bagli degilse baglama ekrani, bagliysa "baglantiyi kes" onayi. */
+    private fun openGoogleAccount() {
+        if (!GoogleAuth.isConfigured()) {
+            CarToast.makeText(carContext, s(R.string.google_not_configured), CarToast.LENGTH_LONG).show()
+            return
+        }
+        val next = if (GoogleAuth.isLinked(carContext)) GoogleUnlinkScreen(carContext)
+        else GoogleLinkScreen(carContext)
+        carContext.getCarService(ScreenManager::class.java).push(next)
     }
 
     private fun openProbe() {
@@ -185,7 +259,7 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         // Cift dokunus iki yukleme baslatmasin; ikincisi ayni dosyayi ayni
         // anda ezmeye calisirdi.
         if (uploading) return
-        if (!DriveUploader.isConfigured()) {
+        if (!DriveUploader.isReady(carContext)) {
             CarToast.makeText(
                 carContext, s(R.string.drive_not_configured), CarToast.LENGTH_LONG
             ).show()
@@ -195,6 +269,10 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         uploading = true
         invalidate()
         CarToast.makeText(carContext, s(R.string.drive_busy), CarToast.LENGTH_LONG).show()
+
+        // Elle aktarim otomatik kuyrugu da dürtsün: ag yeni geldiyse ya da
+        // geri cekilme suresi uzunsa bekleyen yolculuklar hemen gitsin.
+        JourneyData.current()?.sync?.kick(TripSync.REASON_MANUAL)
 
         Thread({
             val result = DriveUploader.uploadAll(carContext)
@@ -209,23 +287,27 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
     }
 
     /**
-     * Ekran icerigi. Sira "surucu neyi merak eder" diye kuruldu: once konum ve
-     * hiz, sonra enerji, en sonda gunluk/tanilama.
+     * Ekran icerigi. Sira "surucu neyi merak eder" diye kuruldu: once konum,
+     * sonra enerji, en sonda gunluk/tanilama.
      *
      * **Kontak ve park freni satirlari kaldirildi:** Faz 0'da bu property'lerin
      * CONTINUOUS aboneligi kabul edip etmedigi olculuyordu; cevap alindi
      * (ikisi de ON_CHANGE davraniyor) ve durum makinesi disinda bir islevleri
      * yok. Surucuye vitesin P'de oldugunu soylemek gostergenin isi.
+     *
+     * **Hiz, vites, dis sicaklik, kalan menzil ve batarya satirlari da
+     * kaldirildi (2026-09-30):** hepsini arac kendi gostergesinde zaten
+     * gosteriyor; ekran olcum ekrani olmaktan cikip ayarlar ekranina dondu.
      */
-    private fun buildRows(r: CalibrationLogger.Report): List<Row> {
-        val rows = mutableListOf<Row>()
+    private fun buildRows(r: CalibrationLogger.Report): Map<RowKey, Row> {
+        val rows = LinkedHashMap<RowKey, Row>()
         val byName = r.rows.associateBy { it.name }
         val hub = JourneyData.current()?.hub
         val snap = hub?.snapshot
         val none = TripFormat.NONE
 
         r.streamError?.let {
-            rows += Row.Builder()
+            rows[RowKey.NO_DATA] = Row.Builder()
                 .setTitle(s(R.string.calib_no_data))
                 .addText(it)
                 .build()
@@ -237,7 +319,7 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         // planda 1 Hz, arka planda dakikada ~1 fix). Yas buyuyorsa mesafe ham
         // hiz integralinden yurutuluyor demektir.
         val fix = JourneyData.current()?.location?.lastFix
-        rows += if (fix == null) {
+        rows[RowKey.LOCATION] = if (fix == null) {
             Row.Builder()
                 .setTitle(s(R.string.calib_location))
                 .addText(s(R.string.calib_no_fix))
@@ -266,57 +348,81 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         // --- Arka plan konumu ---
         // Bu satir olmadan duzeltmenin araçta calisip calismadigi anlasilamaz:
         // araçta logcat yok, tek gorunur kanit burasi. Servis ayaktaysa Android
-        // konum kisitini uygulamiyor demektir (bkz. JourneyLocationService).
-        rows += Row.Builder()
+        // konum kisitini uygulamiyor demektir (bkz. JourneyService).
+        rows[RowKey.BG_LOCATION] = Row.Builder()
             .setTitle(s(R.string.calib_bg_location))
             .addText(
                 when {
                     !Permissions.hasLocation(carContext) -> s(R.string.calib_bg_denied)
-                    JourneyLocationService.running -> s(R.string.calib_bg_on)
+                    JourneyService.running -> s(R.string.calib_bg_on)
                     else -> s(R.string.calib_bg_off)
                 }
             )
             .addText(s(R.string.calib_bg_note))
             .build()
 
-        // --- Hiz ---
-        rows += Row.Builder()
-            .setTitle(s(R.string.calib_speed))
+        // --- Otomatik baslatma ---
+        // Arac acilinca, uygulama acilmadan kayit. Tek gorunur kanit burasi:
+        // son baslatmanin NEDENI "açılış" ise alici calismis, "uygulama" ise
+        // servis ancak uygulama acilinca kalkmis demektir. Izin eksikse satira
+        // dokunmak "Her zaman" konum izni istegini aciyor.
+        val autoOk = Permissions.canAutoStart(carContext)
+        rows[RowKey.AUTO_START] = Row.Builder()
+            .setTitle(s(R.string.calib_auto))
+            .addText(if (autoOk) s(R.string.calib_auto_on) else s(R.string.calib_auto_off))
             .addText(
-                s(
-                    R.string.calib_speed_values,
-                    snap?.speedKmh?.let { "${num(it, 0)} km/h" } ?: none,
-                    snap?.rawSpeedKmh?.let { "${num(it, 0)} km/h" } ?: none,
+                JourneyService.lastStart?.let { st ->
+                    s(
+                        if (st.ok) R.string.calib_auto_last else R.string.calib_auto_last_failed,
+                        reasonLabel(st.reason),
+                        SimpleDateFormat("dd.MM HH:mm", Locale.ROOT).format(Date(st.atEpoch)),
+                    )
+                } ?: s(R.string.calib_auto_never)
+            )
+            .apply { if (!autoOk) setOnClickListener { requestAutoStart() } }
+            .build()
+
+        // --- GPS izi ---
+        JourneyData.current()?.recorder?.track?.let { tr ->
+            rows[RowKey.TRACK] = Row.Builder()
+                .setTitle(s(R.string.calib_track))
+                .addText(
+                    if (tr.openStartEpoch != null) s(R.string.calib_track_open, tr.rows)
+                    else s(R.string.calib_track_idle)
                 )
-            )
-            .addText(
-                byName["PERF_VEHICLE_SPEED_DISPLAY"]?.let { rateLine(it) }
-                    ?: s(R.string.calib_speed_unreadable)
-            )
-            .build()
+                .addText(s(R.string.calib_track_saved, tr.savedTracks().size))
+                .build()
+        }
 
-        // --- Batarya ---
-        rows += Row.Builder()
-            .setTitle(s(R.string.calib_battery))
-            .addText(
-                // Bolen olarak GERCEK kapasite gosteriliyor: 2026-09-09'da
-                // olculdu ki EV_BATTERY_LEVEL artik SoC x GERCEK kapasite
-                // (nominal degil). Uc olcumde de tam yuzde tutturdu:
-                // 40418,6/66260 = %61,00 · 39756,0/66260 = %60,00.
-                "${r.socLast?.let { TripFormat.pct(it) } ?: none}  ·  " +
-                    "${snap?.batteryKwh?.let { "${num(it, 2)} kWh" } ?: none}  /  " +
-                    (snap?.usableCapacityKwh ?: r.nominalCapacityKwh)
-                        ?.let { "${num(it, 2)} kWh" }.orEmpty().ifEmpty { none }
-            )
-            .addText(byName["EV_BATTERY_LEVEL"]?.let { stepLine(it) } ?: s(R.string.calib_no_events))
-            .build()
-
-        // --- Menzil ---
-        byName["RANGE_REMAINING"]?.let { p ->
-            rows += Row.Builder()
-                .setTitle(s(R.string.calib_range))
-                .addText(snap?.rangeKm?.let { "${num(it, 0)} km" } ?: none)
-                .addText(stepLine(p))
+        // --- Otomatik yukleme ---
+        // Kuyruk ve son turun sonucu. Araçta logcat yok: "yolculuk Drive'a
+        // gitti mi, gitmediyse neden" sorusunun tek cevabi bu satir.
+        JourneyData.current()?.sync?.let { sync ->
+            val pending = sync.pendingCount()
+            val red = sync.outbox.rejectedCount()
+            rows[RowKey.SYNC] = Row.Builder()
+                .setTitle(s(R.string.calib_sync))
+                .addText(
+                    buildString {
+                        append(
+                            when {
+                                !DriveUploader.isReady(carContext) -> s(R.string.calib_drive_off)
+                                sync.busy -> s(R.string.calib_sync_busy, pending)
+                                pending > 0 -> s(R.string.calib_sync_pending, pending)
+                                else -> s(R.string.calib_sync_empty)
+                            }
+                        )
+                        if (red > 0) append(" · " + s(R.string.calib_sync_rejected, red))
+                    }
+                )
+                .addText(
+                    sync.lastStatus?.let { st ->
+                        val at = SimpleDateFormat("dd.MM HH:mm", Locale.ROOT).format(Date(st.atEpoch))
+                        val err = st.outcome.error
+                        if (err == null) s(R.string.calib_sync_last_ok, at, st.outcome.uploaded)
+                        else s(R.string.calib_sync_last_error, at, err.take(70))
+                    } ?: s(R.string.calib_sync_never)
+                )
                 .build()
         }
 
@@ -324,7 +430,7 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         // Isaret Faz 0'da olculdu: pozitif = tuketim, negatif = rejen. Property
         // adi ("charge rate") bunun tersini cagristiriyor.
         byName["EV_BATTERY_INSTANTANEOUS_CHARGE_RATE"]?.let { p ->
-            rows += Row.Builder()
+            rows[RowKey.POWER] = Row.Builder()
                 .setTitle(s(R.string.calib_power))
                 .addText(
                     snap?.powerKw?.let {
@@ -339,24 +445,6 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
                 .build()
         }
 
-        // --- Dis sicaklik ---
-        // Ic sicaklik yok: AndroidManifest'teki nota bak — iklim izni gerekiyor
-        // ve tek bir okunur satir icin surucuden istemeye degmiyor.
-        rows += Row.Builder()
-            .setTitle(s(R.string.calib_outside_temp))
-            .addText(snap?.outsideTempC?.let { "${num(it, 1)} °C" } ?: none)
-            .addText(s(R.string.calib_temp_note))
-            .build()
-
-        // --- Vites ---
-        byName["GEAR_SELECTION"]?.let { p ->
-            rows += Row.Builder()
-                .setTitle(s(R.string.calib_gear))
-                .addText(gearText(snap?.gear))
-                .addText(s(R.string.calib_gear_events, p.count, p.changeCount))
-                .build()
-        }
-
         // --- Mesafe: GPS'e karsi tekerlek ---
         // Bu satirin varlik sebebi: odometre ucuncu partiye kapali oldugu icin
         // GPS mesafesinin hatasini simdiye kadar hic olcememistik. WHEEL_TICK
@@ -368,7 +456,7 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
             // ham deger giriyor ki sabit degisirse gecmis yeniden turetilebilsin.
             val wheelKm = acc.wheelDistanceCalibratedKm
             val bias = acc.gpsVsWheel
-            rows += Row.Builder()
+            rows[RowKey.WHEEL] = Row.Builder()
                 .setTitle(s(R.string.calib_wheel))
                 .addText(
                     if (wheelKm == null) s(R.string.calib_wheel_waiting)
@@ -388,7 +476,7 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         // --- Yolculuk ---
         JourneyData.current()?.recorder?.let { rec ->
             val acc = rec.live
-            rows += Row.Builder()
+            rows[RowKey.TRIP] = Row.Builder()
                 .setTitle(s(R.string.calib_trip, stateLabel(rec.state.name)))
                 .addText(
                     acc?.let {
@@ -406,7 +494,7 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         }
 
         // --- Enerji capraz kontrolu: guc integrali ↔ batarya farki ---
-        rows += Row.Builder()
+        rows[RowKey.ENERGY_CHECK] = Row.Builder()
             .setTitle(s(R.string.calib_energy_check))
             .addText(
                 s(
@@ -422,9 +510,9 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         // Grafiklerin x ekseni, buyuk tuketim sayisi ve ortalama hiz topu icin
         // TEK bir pencere: ucu ayri ayri ayarlanabilseydi ekrandaki uc sayi
         // farkli mesafelere ait olur ve birbirleriyle karsilastirilamazdi.
-        rows += Row.Builder()
+        rows[RowKey.WINDOW] = Row.Builder()
             .setTitle(s(R.string.calib_window))
-            .addText(s(R.string.live_window, WindowSetting.km(carContext).toInt()))
+            .addText(s(R.string.calib_window_value, WindowSetting.km(carContext).toInt()))
             .addText(s(R.string.calib_window_sub))
             .setOnClickListener {
                 WindowSetting.next(carContext)
@@ -436,7 +524,7 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         // Uygulamanin tek ayari; ActionStrip'te bos yuva yok (ListTemplate
         // BASLIKLI tek aksiyona izin veriyor, o da "Dışa aktar"), bu yuzden
         // dokunulabilir bir satir olarak duruyor.
-        rows += Row.Builder()
+        rows[RowKey.THEME] = Row.Builder()
             .setTitle(s(R.string.calib_theme))
             .addText(s(ThemeSetting.mode(carContext).labelRes))
             .addText(
@@ -455,7 +543,7 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         // Doluluk EKRANDA gorunmeli: onceki surumde dosya 8 MiB'ye carpip sessizce
         // yazmayi birakmisti; alti gun fark edilmedi ve arka arkaya iki disa
         // aktarim birebir ayni dosyayi verdi.
-        rows += Row.Builder()
+        rows[RowKey.LOG] = Row.Builder()
             .setTitle(if (r.csvFull) s(R.string.calib_log_full) else s(R.string.calib_log))
             .addText(
                 s(
@@ -474,7 +562,7 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         // bir surus sessizce atildi ve yalnizca logcat'e yazildi; araçta logcat
         // okunamadigi icin gunler sonra fark edildi. Artik burada duruyor.
         JourneyData.current()?.recorder?.skipped?.let { sk ->
-            rows += Row.Builder()
+            rows[RowKey.SKIPPED] = Row.Builder()
                 .setTitle(s(R.string.calib_trip_skipped))
                 .addText(
                     s(
@@ -492,6 +580,16 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         return rows
     }
 
+    /** Servis baslatma nedenleri gunluge Turkce sabit olarak yaziliyor; ekranda dile bagli. */
+    private fun reasonLabel(reason: String): String = when (reason) {
+        JourneyService.REASON_BOOT -> s(R.string.svc_reason_boot)
+        JourneyService.REASON_UPDATE -> s(R.string.svc_reason_update)
+        JourneyService.REASON_APP -> s(R.string.svc_reason_app)
+        JourneyService.REASON_PERMISSION -> s(R.string.svc_reason_permission)
+        JourneyService.REASON_RESTART -> s(R.string.svc_reason_restart)
+        else -> reason
+    }
+
     /** Durum makinesi adlari Turkce sabitler; ekranda gosterilen etiket dile bagli. */
     private fun stateLabel(name: String): String = when (name) {
         "AKTİF" -> s(R.string.state_active)
@@ -500,42 +598,35 @@ class CalibrationScreen(carContext: CarContext) : Screen(carContext), DefaultLif
         else -> s(R.string.state_idle)
     }
 
-    private fun gearText(gear: Int?): String = when (gear) {
-        null -> TripFormat.NONE
-        VehicleDataHub.GEAR_PARK -> s(R.string.calib_gear_park)
-        GEAR_REVERSE -> s(R.string.calib_gear_reverse)
-        GEAR_NEUTRAL -> s(R.string.calib_gear_neutral)
-        GEAR_DRIVE -> s(R.string.calib_gear_drive)
-        else -> gear.toString()
-    }
-
-    private fun stepLine(p: CalibrationLogger.Row): String {
-        val step = p.minStepText
-            ?: return s(R.string.calib_step_no_change, p.lastValueText, p.count)
-        val gap = p.minChangeGapSec?.let { " " + s(R.string.calib_step_min_gap, num(it, 1)) } ?: ""
-        val mean = p.meanChangeGapSec?.let { " " + s(R.string.calib_step_mean_gap, num(it, 1)) } ?: ""
-        return s(R.string.calib_step_line, p.lastValueText, step, gap, mean, p.changeCount)
-    }
-
-    private fun rateLine(p: CalibrationLogger.Row): String {
-        val hz = p.measuredHz?.let { num(it, 2) } ?: TripFormat.NONE
-        val jit = p.jitterMs?.let { num(it, 0) } ?: TripFormat.NONE
-        val invalid =
-            if (p.invalidCount > 0) " " + s(R.string.calib_rate_invalid, p.invalidCount) else ""
-        return s(R.string.calib_rate_line, p.subscription, hz, jit, p.count, invalid)
-    }
-
     private fun s(id: Int, vararg args: Any): String = carContext.getString(id, *args)
 
     /** Ondalik ayraci dile gore degisiyor; ortak bicimleyiciden geciyor. */
     private fun num(v: Double, decimals: Int): String = TripFormat.num(v, decimals)
 
+    /** Ekrandaki her satirin kimligi — bolumler bu anahtarlarla kuruluyor. */
+    private enum class RowKey {
+        GOOGLE, SYNC, AUTO_START, BG_LOCATION, TRACK, DRIVE,
+        TRIP, WHEEL, SKIPPED,
+        NO_DATA, LOCATION, POWER, ENERGY_CHECK,
+        WINDOW, THEME,
+        PROBE, LOG, VERSION,
+    }
+
     companion object {
         private const val REFRESH_MS = 2000L
 
-        // VehiclePropertyIds sabitleri; VehicleDataHub yalnizca PARK icin tutuyor.
-        private const val GEAR_NEUTRAL = 1
-        private const val GEAR_REVERSE = 2
-        private const val GEAR_DRIVE = 8
+        /** Bolum basligi → icindeki satirlar, ekrandaki sirayla (onGetTemplate notu). */
+        private val SECTIONS = listOf(
+            R.string.calib_sec_recording to listOf(
+                RowKey.GOOGLE, RowKey.SYNC, RowKey.AUTO_START,
+                RowKey.BG_LOCATION, RowKey.TRACK, RowKey.DRIVE,
+            ),
+            R.string.calib_sec_trip to listOf(RowKey.TRIP, RowKey.WHEEL, RowKey.SKIPPED),
+            R.string.calib_sec_vehicle to listOf(
+                RowKey.NO_DATA, RowKey.LOCATION, RowKey.POWER, RowKey.ENERGY_CHECK,
+            ),
+            R.string.calib_sec_settings to listOf(RowKey.WINDOW, RowKey.THEME),
+            R.string.calib_sec_diagnostics to listOf(RowKey.PROBE, RowKey.LOG, RowKey.VERSION),
+        )
     }
 }

@@ -1,5 +1,6 @@
 package com.example.ex30telemetry.car
 
+import android.content.Context
 import android.util.Log
 import androidx.car.app.CarContext
 import androidx.car.app.hardware.CarHardwareManager
@@ -29,8 +30,19 @@ import kotlin.math.abs
  *
  * Gelmeyen bir property sessizce dusuyor: ilgili alan null kaliyor, ekranda o
  * satir gorunmuyor, uygulama calismaya devam ediyor.
+ *
+ * ## Oturumdan bagimsiz (2026-09-28)
+ *
+ * Hub artik duz bir [Context] ile calisiyor: uygulama hic acilmadan, arac
+ * acilisinda baslayan [com.example.ex30telemetry.JourneyService]
+ * icinde yasiyor. `CarContext` yalnizca bir oturum ACIKKEN var; ona bagli tek
+ * kaynak Car App Library'nin SoC dinleyicisi, o da [attachCarContext] ile
+ * sonradan takiliyor. Oturum yokken SoC ham property'lerden hesaplaniyor
+ * (bkz. [computedSoc]).
  */
-class VehicleDataHub(private val carContext: CarContext) {
+class VehicleDataHub(context: Context) {
+
+    private val appContext: Context = context.applicationContext
 
     /** Ekranlarin okudugu anlik goruntu. Null = veri yok, sifir degil. */
     data class Snapshot(
@@ -76,7 +88,7 @@ class VehicleDataHub(private val carContext: CarContext) {
         fun onSample(value: Double, tNanos: Long)
     }
 
-    private val stream = CarPropertyStream(carContext)
+    private val stream = CarPropertyStream(appContext)
 
     /** `WHEEL_TICK` sabitleri araçtan gelmezse null kalir ve satir gorunmez. */
     private var wheels: WheelOdometer? = null
@@ -94,7 +106,15 @@ class VehicleDataHub(private val carContext: CarContext) {
         private set
 
     private var energyListener: OnCarDataAvailableListener<EnergyLevel>? = null
+    private var carContext: CarContext? = null
     private var started = false
+
+    /**
+     * Car App Library'nin son SoC degeri. Oturum kapaninca null'a donuyor ve
+     * [Snapshot.socPercent] hesaplanan degere geri dusuyor.
+     */
+    @Volatile
+    private var carInfoSoc: Double? = null
 
     /** Fiilen kullanilan hiz property'si — gosterge hizi yoksa hama dusuluyor. */
     @Volatile
@@ -126,11 +146,11 @@ class VehicleDataHub(private val carContext: CarContext) {
                 powerListeners.forEach { l -> l.onSample(kw, t) }
             }
             listen("EV_BATTERY_LEVEL", 1f) { v, _ ->
-                update { it.copy(batteryKwh = v / 1000.0) }
+                update { withSoc(it.copy(batteryKwh = v / 1000.0)) }
             }
             // ON_CHANGE property; sicaklikla birkac on Wh oynuyor. 1 Hz fazlasiyla yeter.
             listen("EV_CURRENT_BATTERY_CAPACITY", 1f) { v, _ ->
-                if (v > 0) update { it.copy(usableCapacityKwh = v / 1000.0) }
+                if (v > 0) update { withSoc(it.copy(usableCapacityKwh = v / 1000.0)) }
             }
             listen("RANGE_REMAINING", 2f) { v, _ ->
                 update { it.copy(rangeKm = v / 1000.0) }
@@ -153,8 +173,6 @@ class VehicleDataHub(private val carContext: CarContext) {
             }
             startWheelTicks()
         }
-
-        startCarInfoEnergy()
     }
 
     @Synchronized
@@ -162,13 +180,34 @@ class VehicleDataHub(private val carContext: CarContext) {
         if (!started) return
         started = false
         stream.stop()
+        detachCarContext()
+    }
+
+    /**
+     * Oturum acildi: Car App Library'nin SoC dinleyicisini tak. Oturum
+     * kapanmadan [detachCarContext] cagrilmali — CarContext oturumla oluyor.
+     */
+    @Synchronized
+    fun attachCarContext(ctx: CarContext) {
+        if (carContext === ctx) return
+        detachCarContext()
+        carContext = ctx
+        startCarInfoEnergy(ctx)
+    }
+
+    @Synchronized
+    fun detachCarContext() {
+        val ctx = carContext ?: return
         energyListener?.let { l ->
             runCatching {
-                carContext.getCarService(CarHardwareManager::class.java)
+                ctx.getCarService(CarHardwareManager::class.java)
                     .carInfo.removeEnergyLevelListener(l)
             }
         }
         energyListener = null
+        carContext = null
+        carInfoSoc = null
+        update { withSoc(it) }
     }
 
     // --- Ic isler ---
@@ -286,23 +325,45 @@ class VehicleDataHub(private val carContext: CarContext) {
         synchronized(this) { snapshot = f(snapshot) }
     }
 
+    /** SoC'yi mevcut kaynaklardan yeniden cozer: once Car App Library, yoksa hesap. */
+    private fun withSoc(s: Snapshot): Snapshot =
+        s.copy(socPercent = carInfoSoc ?: computedSoc(s))
+
     /**
-     * SoC yuzdesinin tek kaynagi Car App Library'nin EnergyLevel dinleyicisi.
+     * Oturum yokken SoC: `EV_BATTERY_LEVEL / EV_CURRENT_BATTERY_CAPACITY`.
+     *
+     * 2026-09-09'da gercek EX30'da olculdu: EV_BATTERY_LEVEL, SoC x GERCEK
+     * (kullanilabilir) kapasite — nominal degil. Uc olcumde de Car App
+     * Library'nin yuzdesini tam tutturdu (40418,6/66260 = %61,00). Aradaki
+     * anlarda bu hesap ONDALIKLI veriyor, kutuphane tam sayi; en fazla 1 puan
+     * fark. Kapasite henuz gelmediyse nominale dusuluyor.
+     */
+    private fun computedSoc(s: Snapshot): Double? {
+        val level = s.batteryKwh ?: return null
+        val cap = s.usableCapacityKwh ?: nominalCapacityKwh
+        if (cap <= 0) return null
+        return (level / cap * 100.0).coerceIn(0.0, 100.0)
+    }
+
+    /**
+     * Oturum acikken SoC'nin birincil kaynagi Car App Library'nin EnergyLevel
+     * dinleyicisi — aracin gosterdigi sayiyla ayni olsun diye.
      * Bu cagri iceride `READ_CAR_DISPLAY_UNITS` istiyor (bkz. AndroidManifest).
      * Gercek EX30'da SoC TAM SAYI geliyor — %1 = 0,66 kWh.
      */
-    private fun startCarInfoEnergy() {
+    private fun startCarInfoEnergy(ctx: CarContext) {
         runCatching {
-            val info = carContext.getCarService(CarHardwareManager::class.java).carInfo
+            val info = ctx.getCarService(CarHardwareManager::class.java).carInfo
             val l = OnCarDataAvailableListener<EnergyLevel> { e ->
                 if (e.batteryPercent.status == CarValue.STATUS_SUCCESS) {
                     e.batteryPercent.value?.toDouble()?.let { p ->
-                        update { it.copy(socPercent = p) }
+                        carInfoSoc = p
+                        update { withSoc(it) }
                     }
                 }
             }
             energyListener = l
-            info.addEnergyLevelListener(ContextCompat.getMainExecutor(carContext), l)
+            info.addEnergyLevelListener(ContextCompat.getMainExecutor(ctx), l)
         }.onFailure { Log.w(TAG, "CarInfo enerji dinleyicisi kurulamadı", it) }
     }
 

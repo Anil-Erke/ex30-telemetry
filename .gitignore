@@ -17,6 +17,8 @@ local.properties
 # SECRETS - never commit / GIZLI - asla depoya eklemeyin
 keystore.properties
 drive.properties
+oauth.properties
+*client_secret*.json
 *.jks
 *.keystore
 

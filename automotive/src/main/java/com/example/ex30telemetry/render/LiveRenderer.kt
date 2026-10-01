@@ -517,7 +517,7 @@ class LiveRenderer(
 
     /** Alt serit: SoC, menzil, dis sicaklik, mesafe, sure. */
     /**
-     * Ortalama hiz bari: 0–180 km/h'lik sabit olcek, 20 km/h'de bir ince cizgi,
+     * Ortalama hiz bari: 0–150 km/h'lik sabit olcek, 25 km/h'de bir ince cizgi,
      * uzerinde iki top — son 10 km (yesil, hiz grafigiyle ayni renk) ve yolculuk
      * ortalamasi (mavi, tuketim panelindeki "yolculuk ort." ile ayni renk).
      *
@@ -581,7 +581,7 @@ class LiveRenderer(
             return innerL + ((innerR - innerL) * (c / SPEED_BAR_MAX)).toFloat()
         }
 
-        // 20 km/h'de bir ince cizgi. Uc noktalar zaten seridin kenari.
+        // 25 km/h'de bir ince cizgi. Uc noktalar zaten seridin kenari.
         gridPaint.color = pal.panel
         var tick = SPEED_BAR_TICK
         while (tick < SPEED_BAR_MAX) {
@@ -590,11 +590,11 @@ class LiveRenderer(
             tick += SPEED_BAR_TICK
         }
 
-        // Etiketler: 20'de bir yazmak 800 px'de okunmuyor, 60'ta bir yeter.
+        // Etiketler: her cizgiye yazmak 800 px'de okunmuyor, 50'de bir yeter.
         gridTextPaint.color = pal.gridText
         gridTextPaint.textSize = u * 0.52f
         val labelY = trackTop + trackH + u * 0.75f
-        for (v in intArrayOf(0, 60, 120, 180)) {
+        for (v in intArrayOf(0, 50, 100, 150)) {
             val txt = v.toString()
             val w = gridTextPaint.measureText(txt)
             val x = (xOf(v.toDouble()) - w / 2f).coerceIn(innerL, innerR - w)
@@ -714,10 +714,13 @@ class LiveRenderer(
         /** Hedeflenen referans cizgisi sayisi; gercek sayi yuvarlamaya gore degisir. */
         const val GRID_TARGET_LINES = 4
 
-        /** Ortalama hiz barinin sag ucu (km/h). */
-        const val SPEED_BAR_MAX = 180.0
-        /** Barda ince cizgi araligi (km/h). */
-        const val SPEED_BAR_TICK = 20.0
+        /**
+         * Ortalama hiz barinin sag ucu (km/h). Yalnizca topun YERINI belirliyor:
+         * ortalama bunu asarsa top en sagda kaliyor, yazan sayi gercek deger.
+         */
+        const val SPEED_BAR_MAX = 150.0
+        /** Barda ince cizgi araligi (km/h); SPEED_BAR_MAX'i tam bolmeli. */
+        const val SPEED_BAR_TICK = 25.0
 
         /** Bu orandan sonra "konumsuz" uyarisi irtifa satirina yaziliyor. */
         const val BRIDGE_NOTICE = 0.05

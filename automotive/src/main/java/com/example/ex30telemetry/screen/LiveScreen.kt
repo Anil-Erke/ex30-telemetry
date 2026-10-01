@@ -17,6 +17,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.ex30telemetry.BuildConfig
 import com.example.ex30telemetry.JourneyData
+import com.example.ex30telemetry.JourneyService
 import com.example.ex30telemetry.Permissions
 import com.example.ex30telemetry.R
 import com.example.ex30telemetry.calib.Calibration
@@ -29,6 +30,7 @@ import com.example.ex30telemetry.render.LiveState
 import com.example.ex30telemetry.render.ThemeSetting
 import com.example.ex30telemetry.render.WindowSetting
 import com.example.ex30telemetry.trip.TripState
+import com.example.ex30telemetry.sync.TripSync
 
 /**
  * Surus ekrani: NavigationTemplate + Surface.
@@ -117,6 +119,18 @@ class LiveScreen(carContext: CarContext) : Screen(carContext), DefaultLifecycleO
                         }
                         recorder != null
                     }
+                    // Google baglama ekranini acar. Emulatorde `adb input tap`
+                    // host satirlarina isabet etmiyor (prompt.md §6.10).
+                    "google" -> {
+                        carContext.getCarService(ScreenManager::class.java)
+                            .push(GoogleLinkScreen(carContext))
+                        true
+                    }
+                    // Yukleme kuyrugunu hemen dener (geri cekilmeyi beklemeden).
+                    "sync" -> {
+                        JourneyData.current()?.sync?.kick(TripSync.REASON_MANUAL)
+                        true
+                    }
                     "seed" -> {
                         val n = intent.getIntExtra("trips", 12)
                         JourneyData.current()?.store?.let { SeedTrips.generate(it, n) }
@@ -144,10 +158,25 @@ class LiveScreen(carContext: CarContext) : Screen(carContext), DefaultLifecycleO
             carContext.getCarService(ScreenManager::class.java)
                 .push(PermissionScreen(carContext) {
                     // Abonelikler izin verilmeden once kuruldugu icin bastan kur.
-                    Calibration.restart(carContext)
-                    JourneyData.onLocationPermissionGranted()
+                    val app = carContext.applicationContext
+                    Calibration.restart(app, carContext)
+                    JourneyData.restart(app, carContext)
+                    // Konum izni yeni geldiyse servis oturum acilirken
+                    // baslayamamisti; uygulama su an on planda, simdi baslar.
+                    JourneyService.start(carContext, JourneyService.REASON_PERMISSION)
                     invalidate()
+                    // Izinler tamam; ilk kurulumsa Drive yedegini teklif et.
+                    offerGoogleIfNeeded()
                 })
+        } else {
+            offerGoogleIfNeeded()
+        }
+    }
+
+    /** Bkz. [GoogleOfferScreen]: yeni kullanici baglantiyi Olcum ekraninda bulamaz. */
+    private fun offerGoogleIfNeeded() {
+        if (GoogleOfferScreen.shouldAsk(carContext)) {
+            carContext.getCarService(ScreenManager::class.java).push(GoogleOfferScreen(carContext))
         }
     }
 

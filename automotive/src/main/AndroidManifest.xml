@@ -97,7 +97,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!--
-      Konum tipli ON PLAN SERVISI (bkz. loc/JourneyLocationService.kt).
+      Konum tipli ON PLAN SERVISI (bkz. JourneyService.kt).
 
       Neden: surucu baska bir uygulamaya gectiginde arac verisi akmaya devam
       ediyor (58 dk boyunca en buyuk bosluk 222 ms) ama Android konum
@@ -106,10 +106,9 @@
       cunku yukseklik yalnizca konumdan geliyor: grafikte duz cizgi, tirmanis
       toplaminda eksik metre olarak goruluyor.
 
-      ACCESS_BACKGROUND_LOCATION BILEREK YOK: kisit izne degil surec durumuna
-      bakiyor, yani o izin sorunu cozmezdi; ustelik Play'de ayri bir "arka plan
-      konum" beyani ve incelemesi gerekirdi. Konum tipli on plan servisi
-      calisirken surec durumu FGS oluyor ve kisit hic uygulanmiyor.
+      Seyrelme sorununu ACCESS_BACKGROUND_LOCATION cozmez: kisit izne degil
+      surec durumuna bakiyor. Konum tipli on plan servisi calisirken surec
+      durumu FGS oluyor ve kisit hic uygulanmiyor.
 
       DIKKAT (§7): targetSdk 35 ile Play Console'da "On plan servisi turleri"
       beyani ZORUNLU — location turu icin gerekce + video isteniyor.
@@ -117,30 +116,58 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
+    <!--
+      OTOMATIK BASLATMA (2026-09-28): arac acilinca, uygulama acilmadan kayit.
+
+      ACCESS_BACKGROUND_LOCATION artik VAR — ama yukaridaki seyrelme icin degil.
+      Android 14+ konum tipli bir servisi, uygulama on planda DEGILKEN ancak bu
+      izinle baslatiyor; acilista (BOOT_COMPLETED) uygulama on planda degil.
+      Izin OPSIYONEL: yoksa uygulama eskisi gibi, acilinca kaydediyor.
+
+      DIKKAT: Play Console bu izin icin ayri bir "Konum izinleri" beyani
+      (gerekce + video) isteyebilir; dahili testte de sorabilir. Gizlilik
+      politikasi (privacy/index.html) da buna gore guncellenmeli.
+
+      RECEIVE_BOOT_COMPLETED: Normal izin, kurulumda veriliyor.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!-- Canli ekrani cizdigimiz Surface'e erisim icin zorunlu (§3.2) -->
     <uses-permission android:name="androidx.car.app.ACCESS_SURFACE" />
     <!-- NavigationTemplate kullanabilmek icin zorunlu -->
     <uses-permission android:name="androidx.car.app.NAVIGATION_TEMPLATES" />
 
     <!--
-      INTERNET — YALNIZCA "Drive'a aktar" icin (calib/DriveUploader.kt).
+      INTERNET — Google girisi ve KULLANICININ KENDI Google Drive'i icin
+      (google/GoogleAuth.kt, google/DriveClient.kt).
 
       DIKKAT: bu izin 0.7.1'e kadar BILEREK YOKTU ve §7.6a'daki kisayol ona
       dayaniyordu ("INTERNET yok -> veri guvenligi formu 'veri toplanmiyor' ile
       kapanir"). O kisayol ARTIK GECERLI DEGIL. §13.9'daki "manifest'te INTERNET
-      yok" iddiasi da bu surumden itibaren kullanilamaz.
+      yok" iddiasi da kullanilamaz.
 
-      Yerine gecen gerekce §7.6a'daki EX30 Browser zinciri:
-        - gelistirici sunucusu yok; hedef KULLANICININ KENDI Google Drive'i
-        - aktarimi yalnizca kullanici baslatiyor (tek dokunuslu dugme)
-        - arka planda, otomatik ya da periyodik hicbir gonderim yok
-        - analitik, reklam, cokme raporlama SDK'si yok
+      Ne gidiyor, nereye (2026-09-29):
+        - Yolculuk ozetleri ve GPS IZLERI (konum gecmisi!) yolculuk bitince
+          KENDILIGINDEN gidiyor (sync/TripSync.kt) — arka planda, otomatik.
+        - Hedef: surucunun araçta BAGLADIGI Google hesabinin Drive'i, drive.file
+          izniyle (uygulama yalnizca kendi dosyalarini gorur). Gelistirici
+          sunucusu yok, ara sunucu yok (eski Apps Script ucu devre disi).
+        - Hesap bagli degilse hicbir sey gitmiyor.
+        - Analitik, reklam, cokme raporlama SDK'si yok.
 
-      Giden veride GPS izi var (trips.json). Uygulama dahili testin disina
-      cikarilacaksa veri guvenligi formu ve privacy/index.html buna gore
-      yeniden yazilmali — o dosya hâlâ "INTERNET izni yok" diyor.
+      Uygulama baskalariyla paylasilacaksa (dahili test dahil) veri guvenligi
+      formu ve privacy/index.html buna gore yeniden yazilmali — o dosya hâlâ
+      "INTERNET izni yok" diyor.
     -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+      Otomatik yukleme ag gelince kuyrugu yeniden deniyor:
+      registerDefaultNetworkCallback bu izni istiyor. Normal izin, kurulumda
+      veriliyor.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:label="@string/app_name"
@@ -208,16 +235,35 @@
             android:theme="@style/CarAppTheme" />
 
         <!--
-          Uygulama acikken calisan konum tipli on plan servisi. Kendisi olcum
-          yapmiyor; uygulamayi arka plan konum kisitindan cikarmak icin var
-          (sinifin basindaki nota bak). POST_NOTIFICATIONS ISTENMIYOR: izin
-          yoksa bildirim gorunmuyor ama servis calismaya devam ediyor, tek bir
-          bilgi satiri icin surucuden izin istemeye degmez (§6.12).
+          Yolculuk kaydinin sahibi olan konum tipli on plan servisi: veri
+          katmanini ve olcum gunlugunu tasiyor, uygulamayi arka plan konum
+          kisitindan cikariyor (sinifin basindaki nota bak). POST_NOTIFICATIONS
+          ISTENMIYOR: izin yoksa bildirim gorunmuyor ama servis calismaya devam
+          ediyor, tek bir bilgi satiri icin surucuden izin istemeye degmez (§6.12).
         -->
         <service
-            android:name=".loc.JourneyLocationService"
+            android:name=".JourneyService"
             android:exported="false"
             android:foregroundServiceType="location" />
+
+        <!--
+          Head unit sifirdan acilinca ve uygulama guncellenince servisi baslatir.
+          Uykudan uyanmada BOOT_COMPLETED gelmiyor; o durumu servisin kendisi
+          karsiliyor (bkz. JourneyService).
+
+          exported="true": iki yayin da korumali (yalnizca sistem gonderebilir),
+          baska bir uygulama bu aliciyi tetikleyemez. false yapmak bazi
+          surumlerde sistem yayininin da gelmemesi riskini tasiyor ve araçta
+          logcat olmadigi icin bunu teshis etmek gunler surerdi.
+        -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".JourneyCarAppService"

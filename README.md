@@ -14,6 +14,7 @@ the stock UI does not expose.
 <p>
   <img src="screenshots/en-live.png" width="270" alt="Live screen, light theme">
   <img src="screenshots/en-live-dark.png" width="270" alt="Live screen, dark theme">
+  <img src="screenshots/en-drive-offer.png" width="270" alt="Offer to back up to Google Drive">
 </p>
 <p>
   <img src="screenshots/en-trips.png" width="270" alt="Trip history">
@@ -21,8 +22,9 @@ the stock UI does not expose.
   <img src="screenshots/en-vehicle-data.png" width="270" alt="Vehicle data / diagnostics">
 </p>
 
-<sub>Live screen (light and dark theme), trip history, records and vehicle data.
-Taken on the AAOS emulator with the debug build's synthetic demo data.</sub>
+<sub>Live screen (light and dark theme), the Google Drive backup offer on first
+launch, trip history, records and the vehicle data / settings screen. Taken on the
+AAOS emulator with the debug build's synthetic demo data.</sub>
 
 ## Features
 
@@ -49,10 +51,30 @@ Taken on the AAOS emulator with the debug build's synthetic demo data.</sub>
   100-0 km/h braking, interpolated between samples
 - Statistics: totals, average consumption, consumption by outside temperature band
 
-**Vehicle data / diagnostics**
+**Recording in the background**
 
-- A diagnostics screen that shows every vehicle signal, its measured sample rate
-  and resolution
+- **Automatic start:** with location allowed "all the time", trips are recorded
+  as soon as the car starts, without opening the app (a foreground service with a
+  notification; started again after the car wakes up or the app is updated)
+- **GPS track:** every trip's route is stored in the car at about 1 Hz (position,
+  GPS altitude, speed, power, state of charge)
+
+**Google Drive sync (optional)**
+
+- Connect **your own** Google account in the car: the car shows a code, you
+  approve it on your phone at `google.com/device`
+- After each drive the trip summary and its GPS track are uploaded automatically
+  to an `EX30 Trips` folder in your Drive. Trips waiting while offline are sent
+  later; on first connection the trip history in the car is uploaded too.
+- The app only gets the `drive.file` permission: it sees only the files it
+  created, not the rest of your Drive. There is no developer server.
+- File layout and formats: [drive-sync/PROTOCOL.md](drive-sync/PROTOCOL.md)
+
+**Vehicle data / settings**
+
+- A settings and diagnostics screen: Google account, upload queue, automatic
+  start, GPS track status, then every vehicle signal with its measured sample
+  rate and resolution
 - **Property probe:** lists which vehicle properties the car actually reports to
   third-party apps (Android 15 / car software 2.1.2 opened several new ones)
 - A raw measurement log (`calib.csv`) for your own analysis
@@ -60,22 +82,31 @@ Taken on the AAOS emulator with the debug build's synthetic demo data.</sub>
 **Export**
 
 - **Export:** copies the logs to `Downloads/EX30YolAnalizi/` on the car
-- **Upload to Drive (optional):** sends the logs to a folder in **your own**
-  Google Drive through a small Apps Script that you deploy yourself
-  ([drive-sync/](drive-sync/README.md)). There is no developer server.
-- The companion desktop app **EX30 Trip Viewer** reads the exported
-  `trips.json` and draws charts on Windows.
+- **Upload to Drive:** with a Google account connected, also uploads the raw logs
+  (`calib.csv`, `trips.json`, `records.json`) to the root of the `EX30 Trips`
+  folder
+- The companion desktop app **EX30 Trip Viewer** reads the exported `trips.json`
+  and draws charts on Windows. Note: the currently published Trip Viewer still
+  reads Drive through the legacy Apps Script endpoint
+  ([drive-sync/README.md](drive-sync/README.md)), not the protocol 3 files above.
 
 UI languages: **English** and **Turkish** (follows the system language).
 
 ## Privacy
 
-- All data stays on the car, in the app's private storage.
-- Nothing is sent anywhere unless **you** press *Export* or *Upload to Drive*.
-  The Drive upload goes only to the endpoint you configure.
+- **The app records location.** Distance and altitude come from GPS, and every
+  trip's route (GPS track) is stored in the app's private storage in the car.
+  The EX30's odometer and built-in GPS sensors are not available to third-party
+  apps.
+- With **automatic start** on (location "all the time"), recording also happens
+  in the background whenever the car is driven. A notification shows while it
+  runs. Without that permission, recording only happens while the app is open.
+- **Nothing leaves the car unless you connect a Google account.** If you do, trip
+  summaries and GPS tracks go **only to that account's own Google Drive**, with
+  the `drive.file` permission. Disconnecting stops uploads and revokes the token
+  at Google; files already in Drive stay there until you delete them.
+- The Google refresh token is stored encrypted with the Android Keystore.
 - No ads, analytics, crash reporting or third-party SDKs.
-- Location is used to calculate distance and altitude. The EX30's odometer and
-  built-in GPS sensors are not available to third-party apps.
 
 ## Before you build: things you must fill in
 
@@ -86,15 +117,55 @@ own value is marked with a **CAPITALISED** comment.
 |---|---|---|
 | Package name (`applicationId`) | `automotive/build.gradle.kts` | **Yes**, for your own release builds. Google Play rejects `com.example.*` |
 | Signing key | copy `keystore.properties.example` → `keystore.properties` | Only for signed release builds |
-| Drive upload endpoint | copy `drive.properties.example` → `drive.properties` | Optional |
-| Drive folder ID + two keys | `drive-sync/Kod.gs` (`PASTE-…` placeholders) | Optional |
+| Google OAuth client | copy `oauth.properties.example` → `oauth.properties` | Optional, for Google Drive sync ([setup](#google-drive-sync-optional)) |
+| Legacy Apps Script endpoint | `drive-sync/Kod.gs` (`PASTE-…` placeholders) | Only for old Trip Viewer versions ([legacy](drive-sync/README.md)) |
 
-`keystore.properties`, `drive.properties`, `*.jks`, `*.aab` and `*.apk` are in
-`.gitignore`. **Never commit them.**
+`keystore.properties`, `oauth.properties`, `client_secret_*.json`, `*.jks`,
+`*.aab` and `*.apk` are in `.gitignore`. **Never commit them.**
+
+Without `oauth.properties` the app builds and works normally; the *Google account*
+row just says the client ID is missing.
+
+## Google Drive sync (optional)
+
+The car app signs in with Google's **device flow**, so you need your own Google
+Cloud OAuth client. It is free; nobody else's data is involved.
+
+1. [console.cloud.google.com](https://console.cloud.google.com) → create a project
+   (e.g. `EX30 Telemetry`).
+2. **APIs & Services → Library → Google Drive API → Enable.**
+3. **Google Auth Platform → Branding / Audience:** set up the consent screen as
+   *External*, then **publish it ("In production")**. In *Testing* status refresh
+   tokens expire after 7 days. `drive.file` is not a sensitive scope, so no Google
+   review is needed.
+4. **Data access:** add the scopes `.../auth/drive.file`, `openid` and `email`.
+5. **Clients → Create client → TVs and Limited Input devices.** Copy the client ID
+   and secret into `oauth.properties` as `carClientId` and `carClientSecret`.
+6. Optional: create a second client of type **Desktop app** in the **same
+   project** (`desktopClientId`, `desktopClientSecret`). It is used by
+   `drive-sync/oauth-dogrulama.py` and `drive-sync/drive-denetle.py`, and by Trip
+   Viewer versions that read protocol 3. Clients in the same project can see each
+   other's files; a client in another project cannot.
+7. Build and install. In the car: **Settings → Google account** → open
+   `google.com/device` on your phone, enter the code, and **tick the Google Drive
+   box** on the consent screen. Without it nothing can be uploaded and the app
+   reports the missing permission.
+
+For device and desktop apps Google does not treat the client secret as
+confidential; on its own it gives no access to anyone's data. Still, keep
+`oauth.properties` out of the repository.
+
+To check what ended up in Drive from your PC (needs the desktop client):
+
+```powershell
+py -3 drive-sync/drive-denetle.py
+```
 
 ## Build
 
-Requirements: Android Studio (JDK 17), Android SDK 35.
+Requirements: Android Studio (JDK 17), Android SDK 35. On Windows the project
+path must not contain non-ASCII characters (e.g. `ı`, `ü`); the Android Gradle
+plugin refuses to build there.
 
 ```powershell
 # Windows
@@ -118,6 +189,7 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
   PKG=com.example.ex30telemetry   # or your own applicationId
   adb install -r -t automotive/build/outputs/apk/debug/automotive-debug.apk
   adb shell pm grant --user 10 $PKG android.permission.ACCESS_FINE_LOCATION
+  adb shell pm grant --user 10 $PKG android.permission.ACCESS_BACKGROUND_LOCATION   # automatic start
   adb shell am start --user 10 -n "$PKG/androidx.car.app.activity.CarAppActivity"
   ```
 
@@ -143,14 +215,17 @@ adb shell am broadcast --user 10 -p $PKG -a $PKG.DEBUG --es cmd screen --es to t
 
 ```
 automotive/src/main/java/.../
+  JourneyService.kt, BootReceiver.kt   background recording service + automatic start
   car/      vehicle property streams, probe, wheel odometer
-  trip/     trip state machine, accumulator, records, range audit, storage
+  trip/     trip state machine, accumulator, GPS track, records, range audit, storage
   render/   live screen drawing, theme and window settings
-  screen/   Car App Library screens (trips, detail, stats, records, diagnostics)
-  calib/    measurement log, export, Drive upload
-  loc/      location + foreground service
+  screen/   Car App Library screens (trips, detail, stats, records, settings, Google sign-in)
+  google/   Google device-flow sign-in, encrypted token storage, Drive REST client
+  sync/     upload queue (outbox) and trip sender
+  calib/    measurement log, export, manual Drive upload
+  loc/      location
   debug/    debug-only hooks and demo data
-drive-sync/ optional Google Apps Script endpoint (Kod.gs)
+drive-sync/ Drive protocol (PROTOCOL.md), helper scripts, legacy Apps Script endpoint (Kod.gs)
 play-assets/ icon and feature graphic
 screenshots/ README images (en-*, tr-*)
 ```

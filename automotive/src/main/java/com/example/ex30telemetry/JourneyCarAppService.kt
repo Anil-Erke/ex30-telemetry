@@ -53,10 +53,20 @@ class JourneySession : Session(), DefaultLifecycleObserver {
         // Bicimleyici aracin dilini buradan aliyor; oturum bitince birakiliyor.
         TripFormat.attach(carContext)
 
-        // Veri katmani ve kalibrasyon sondasi Screen'den bagimsiz: kayit butun
-        // yolculuk boyunca surmeli, ekran degisince durmamali.
-        JourneyData.start(carContext)
-        Calibration.start(carContext)
+        // Veri katmani ve kalibrasyon sondasi Screen'den de oturumdan da
+        // bagimsiz: arac acilisinda JourneyService zaten kurmus olabilir, o
+        // durumda mevcut ornekler donuyor. Oturumun katkisi yalnizca CarContext.
+        val app = carContext.applicationContext
+        Calibration.start(app)
+        JourneyData.start(app)
+        Calibration.attachCarContext(carContext)
+        JourneyData.attachCarContext(carContext)
+
+        // Servis burada da baslatiliyor: arka plan konum izni yoksa acilista
+        // baslayamamistir, uygulama su an on planda oldugu icin bu cagri o
+        // izin olmadan da gecerli (Android 12+ kurali). Zaten calisiyorsa
+        // yalnizca gunluge "uygulama" satiri dusuyor.
+        JourneyService.start(carContext, JourneyService.REASON_APP)
         return if (TEMPLATE_ONLY_DRAFT) LiveTemplateScreen(carContext)
         else LiveScreen(carContext)
     }
@@ -90,10 +100,15 @@ class JourneySession : Session(), DefaultLifecycleObserver {
         Calibration.current()?.note("app", "arka plan")
     }
 
+    /**
+     * Oturum kapaninca kayit DURMUYOR (2026-09-28): veri katmani ve gunluk
+     * JourneyService'le birlikte yasamaya devam ediyor. Yalnizca oturumla olen
+     * CarContext sokuluyor.
+     */
     override fun onDestroy(owner: LifecycleOwner) {
         Calibration.current()?.note("app", "kapandı")
-        Calibration.stop()
-        JourneyData.stop()
+        JourneyData.detachCarContext()
+        Calibration.detachCarContext()
         TripFormat.detach()
     }
 }
