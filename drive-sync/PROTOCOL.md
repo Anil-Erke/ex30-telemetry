@@ -14,7 +14,7 @@ file name or rule changes, update this first, then the clients:
 |---|---|---|
 | Car — EX30 Telemetry | **only writer** | `automotive/.../google/`, `sync/`, `trip/TrackRecorder.kt` |
 | PC — EX30 Trip Viewer | reader | [ex30-trip-viewer](https://github.com/Anil-Erke/ex30-trip-viewer) repository, `ex30trips/drive.py` |
-| Phone/tablet — EX30 Trip Mobile | reader | separate app (not published yet) |
+| Phone/tablet — EX30 Trip Mobile | reader | [ex30-trip-mobile](https://github.com/Anil-Erke/ex30-trip-mobile) repository |
 
 > **Version history.** Versions 1-2 went through an Apps Script endpoint (`Kod.gs`)
 > that each user deployed in their own account; its URL and write key were

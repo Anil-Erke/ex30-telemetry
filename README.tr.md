@@ -89,6 +89,8 @@ emülatöründe, debug derlemesinin sentetik demo verisiyle alındı.</sub>
 - Masaüstü tamamlayıcısı [EX30 Trip Viewer](https://github.com/Anil-Erke/ex30-trip-viewer) Windows'ta grafik ve rota
   haritası çizer. Aynı Google hesabıyla girip yolculukları Drive'dan indirir ya
   da dışa aktarılan `trips.json` dosyasını açar.
+- Android tamamlayıcısı [EX30 Trip Mobile](https://github.com/Anil-Erke/ex30-trip-mobile) aynı yolculukları, GPS izlerini
+  ve güzergâh analizini telefon ya da tablette gösterir.
 
 Arayüz dilleri: **Türkçe** ve **İngilizce** (sistem diline göre).
 

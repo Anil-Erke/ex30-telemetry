@@ -14,7 +14,7 @@ yok.** Her kullanıcı kendi hesabıyla bağlanır, veriler birbirine karışmaz
 |---|---|---|
 | Araç — EX30 Telemetry | **tek yazar** | `automotive/.../google/`, `sync/`, `trip/TrackRecorder.kt` |
 | Bilgisayar — EX30 Trip Viewer | okur | [ex30-trip-viewer](https://github.com/Anil-Erke/ex30-trip-viewer) deposu, `ex30trips/drive.py` |
-| Telefon/tablet — EX30 Trip Mobile | okur | ayrı uygulama (henüz yayınlanmadı) |
+| Telefon/tablet — EX30 Trip Mobile | okur | [ex30-trip-mobile](https://github.com/Anil-Erke/ex30-trip-mobile) deposu |
 
 > **Sürüm geçmişi.** Sürüm 1-2 kullanıcının kendi hesabında yayınladığı bir
 > Apps Script ucundan (`Kod.gs`) geçiyordu; adres ve yazma anahtarı APK'ya

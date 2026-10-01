@@ -88,6 +88,8 @@ AAOS emulator with the debug build's synthetic demo data.</sub>
 - The companion desktop app [EX30 Trip Viewer](https://github.com/Anil-Erke/ex30-trip-viewer) draws charts and route maps
   on Windows. It signs in to the same Google account and downloads the trips from
   Drive, or opens an exported `trips.json`.
+- The companion Android app [EX30 Trip Mobile](https://github.com/Anil-Erke/ex30-trip-mobile) shows the same trips, GPS
+  tracks and route analysis on a phone or tablet.
 
 UI languages: **English** and **Turkish** (follows the system language).
 
