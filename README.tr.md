@@ -41,7 +41,7 @@ emülatöründe, debug derlemesinin sentetik demo verisiyle alındı.</sub>
 
 **Otomatik yolculuk kaydı**
 
-- Araç hareket edince yolculuk başlar, park edildikten 60 sn sonra kaydedilir.
+- Araç hareket edince yolculuk başlar, park edildikten 10 sn sonra kaydedilir.
   Kırmızı ışıkta durmak yolculuğu bitirmez.
 - Yolculuk başına: mesafe, süre, net enerji, rejen, şarj yüzdesi başlangıç →
   bitiş, gösterge menzili başlangıç → bitiş, dış sıcaklık, tırmanış / iniş,
