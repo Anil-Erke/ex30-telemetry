@@ -41,7 +41,7 @@ AAOS emulator with the debug build's synthetic demo data.</sub>
 **Automatic trip recording**
 
 - A trip starts when the car starts moving and is saved after it has been
-  parked for 60 s. A stop at a red light does not end the trip.
+  parked for 10 s. A stop at a red light does not end the trip.
 - Per trip: distance, duration, net energy, regen, state of charge start → end,
   range indicator start → end, outside temperature, climb / descent,
   average / max speed, GPS distance vs. wheel distance
